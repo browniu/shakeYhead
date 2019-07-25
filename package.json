@@ -1,0 +1,23 @@
+{
+  "name": "shakeyhead",
+  "version": "0.0.1",
+  "description": "shake your head",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/browniu/shakeYhead.git"
+  },
+  "author": "browniu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/browniu/shakeYhead/issues"
+  },
+  "homepage": "https://github.com/browniu/shakeYhead#readme",
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.2.5",
+    "@tensorflow/tfjs-node": "^1.2.5"
+  }
+}

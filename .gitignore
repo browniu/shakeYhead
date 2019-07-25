@@ -1,0 +1,13 @@
+# dependencies
+node_modules
+target/node_modules
+target/.cache
+
+# builds
+build
+dist
+temp
+
+# misc
+.DS_Store
+.idea
