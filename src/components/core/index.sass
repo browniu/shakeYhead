@@ -1,0 +1,125 @@
+$co1: #6dbf5c
+$co2: #43885a
+$co3: #5e455f
+$co3h: #2f242f
+$co4: #fffbe8
+$co5: #ef6759
+$co5h: #d23c38
+$co6: #2cb79e
+
+.core
+  color: $co5
+  height: 100vh
+  width: 100vw
+  background: $co1
+  padding: 15px
+  box-sizing: border-box
+
+.display
+  width: 500px
+
+  .display-item
+    display: inline-block
+    vertical-align: top
+
+  .display-inner
+    display: inline-block
+    box-sizing: border-box
+    background: $co3
+    text-align: left
+    vertical-align: top
+    padding: 10px 10px
+    border-radius: 2px
+
+    & > .title
+      padding: 5px 0
+      text-align: center
+      font-size: 12px
+      color: $co4
+
+    .info
+      display: inline-block
+      font-size: 12px
+      color: $co4
+      vertical-align: super
+      width: 60px
+
+      .title
+        font-size: 14px
+
+      .sub
+        font-size: 12px
+        opacity: .7
+
+    .view
+      background: $co3h
+      display: inline-block
+
+    canvas
+      vertical-align: bottom
+
+  .display-main
+    margin-right: 25px
+    .display-inner
+      padding-bottom: 5px
+      #no-webcam
+        display: none
+      video
+        display: inline-block
+        margin: 0
+        padding: 0
+        vertical-align: bottom
+        transform: scaleX(-1)
+  .display-sub
+    li
+      margin-bottom: 7px
+
+      &:last-child
+        margin-bottom: 0
+        margin-top: 8px
+      .view
+        margin-right: 15px
+
+.panel
+  margin-top: 30px
+  background: $co4
+  padding: 15px
+  border-radius: 3px
+  color: $co4
+  box-sizing: border-box
+  width: 500px
+
+  .panel-groups
+    margin-bottom: 5px
+
+    .button
+      cursor: pointer
+      display: inline-block
+      background: $co3
+      margin-right: 10px
+      padding: 5px 15px
+      border-radius: 3px
+      font-size: 12px
+      font-weight: lighter
+      width: calc(430px / 4 - 28px)
+
+      &:active
+        background: $co3h
+
+      &:last-child
+        margin-right: 0
+
+  .panel-button
+    box-sizing: border-box
+    cursor: pointer
+    display: inline-block
+    background: $co5
+    padding: 15px 0
+    width: 100%
+    margin-top: 15px
+    text-align: center
+    border-radius: 3px
+    &:active
+      background: $co5h
+
+
