@@ -11,26 +11,31 @@ class Index extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            displaySize: [300, 60],
+            displaySize: [224, 60],
             displaySub: [
                 {id: 'up', title: '基本动作'},
                 {id: 'left', title: '动作A'},
                 {id: 'right', title: '动作B'},
                 {id: 'down', title: '动作C'}
             ],
+            modelAct: false,
+            trained: false
         }
     }
 
     render() {
         return (
             <div className={'core'}>
-                <div className="display">
+                <div className="display" id={'controller'}>
                     <div className="display-item display-main">
                         <div className="display-inner">
                             <div className="view">
-                                <div className="info" id={'no-webcam'} />
+                                <div className="info" id={'status'}>载入模型</div>
+                                <div className="info" id={'no-webcam'}/>
                                 {/*<canvas></canvas>*/}
-                                <video id={'webcam'} style={{opacity: '0.15'}} autoPlay playsInline muted src="https://ali.image.hellorf.com/images/21bed3696cddb114cee395427211334c.mp4" width={this.state.displaySize[0]} height={this.state.displaySize[0]}/>
+                                <video id={'webcam'} style={{opacity: '0.15'}} autoPlay playsInline muted
+                                       src="https://ali.image.hellorf.com/images/21bed3696cddb114cee395427211334c.mp4"
+                                       width={this.state.displaySize[0]} height={this.state.displaySize[0]}/>
                                 {/*<video style={{opacity: '0.0'}} autoPlay playsInline muted id="webcam" width={this.state.displaySize[0]} height={this.state.displaySize[0]} />*/}
                             </div>
                             <div className="title">监控视窗</div>
@@ -40,9 +45,10 @@ class Index extends Component {
                         <ul>
                             {this.state.displaySub.map((item, index) => (
                                 <li className="display-sub-item" key={index}>
-                                    <div className="display-inner">
+                                    <div className="display-inner" id={'display_' + item.id}>
                                         <div className="view">
-                                            <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]} height={this.state.displaySize[1]} />
+                                            <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]}
+                                                    height={this.state.displaySize[1]}/>
                                         </div>
                                         <div className="info">
                                             <div className="title">{item.title}</div>
@@ -57,15 +63,50 @@ class Index extends Component {
                     </div>
                 </div>
                 <div className="panel">
-                    <div className="panel-groups">
+                    <div className="panel-groups" onClick={() => {
+                        this.setState({modelAct: false, trained: false})
+                    }}>
+
                         {this.state.displaySub.map((button, index) => (
-                            <span className="button" id={button.id} key={index}>{button.title + '捕捉'}</span>))}
+                            <span className={'button'} key={index}>
+                                <span style={{display: 'none'}} id={button.id}/>
+                                <span onClick={() => {
+                                    this.autoClick(button.id, 10)
+                                }}>{button.title + '捕捉'}</span>
+                            </span>
+                        ))}
+
+                        <span className="button">3S延时捕捉<input type="checkbox"/></span>
+
                     </div>
-                    <div className="panel-button" id={'train'}>训练模型</div>
-                    <div className="panel-button" id={'predict'}>启动模型</div>
+
+                    <div className={['panel-button', this.state.trained ? 'act' : ''].join(' ')} id={'train'}
+                         onClick={() => {
+                             setTimeout(() => {
+                                 this.setState({trained: true})
+                             }, 1000);
+                         }}><span id={'train-status'}>{this.state.trained ? '训练完毕' : '训练模型'}</span><span>训练完毕</span>
+                    </div>
+                    <div className={['panel-button', this.state.modelAct ? 'act' : ''].join(' ')} id={'predict'}
+                         onClick={() => {
+                             this.setState({modelAct: true})
+                         }}>
+                        <span>启动模型</span>
+                        <span>已启动</span>
+                    </div>
+                    <div className="panel-button">保存模型</div>
                 </div>
             </div>
         );
+    }
+
+    autoClick(id, times) {
+        let i = 0;
+        let timer = setInterval(() => {
+            i++;
+            document.getElementById(id).click();
+            if (i >= times) clearInterval(timer)
+        }, 50)
     }
 
     componentDidMount() {
@@ -73,7 +114,7 @@ class Index extends Component {
         const CONTROLS = ['up', 'down', 'left', 'right'];
         const CONTROL_CODES = [38, 40, 37, 39];
 
-        function init() {
+        function uiInit() {
             document.getElementById('controller').style.display = '';
             statusElement.style.display = 'none';
         }
@@ -81,17 +122,17 @@ class Index extends Component {
         const trainStatusElement = document.getElementById('train-status');
 
         // Set hyper params from UI values.
-        const learningRateElement = document.getElementById('learningRate');
-        const getLearningRate = () => +learningRateElement.value;
+        // const learningRateElement = document.getElementById('learningRate');
+        const getLearningRate = () => 0.0001; //+learningRateElement.value;
 
-        const batchSizeFractionElement = document.getElementById('batchSizeFraction');
-        const getBatchSizeFraction = () => +batchSizeFractionElement.value;
+        // const batchSizeFractionElement = document.getElementById('batchSizeFraction');
+        const getBatchSizeFraction = () => 0.4;//+batchSizeFractionElement.value;
 
-        const epochsElement = document.getElementById('epochs');
-        const getEpochs = () => +epochsElement.value;
+        // const epochsElement = document.getElementById('epochs');
+        const getEpochs = () => 20;//+epochsElement.value;
 
-        const denseUnitsElement = document.getElementById('dense-units');
-        const getDenseUnits = () => +denseUnitsElement.value;
+        // const denseUnitsElement = document.getElementById('dense-units');
+        const getDenseUnits = () => 100;//+denseUnitsElement.value;
         const statusElement = document.getElementById('status');
 
         function startPacman() {
@@ -145,17 +186,33 @@ class Index extends Component {
             document.body.removeAttribute('data-active');
         }
 
-        upButton.addEventListener('mousedown', () => handler(0));
-        upButton.addEventListener('mouseup', () => mouseDown = false);
+        // upButton.addEventListener('mousedown', () => handler(0));
+        // upButton.addEventListener('mouseup', () => mouseDown = false);
+        upButton.addEventListener('click', () => {
+            handler(0);
+            mouseDown = false;
+        });
 
-        downButton.addEventListener('mousedown', () => handler(1));
-        downButton.addEventListener('mouseup', () => mouseDown = false);
+        // downButton.addEventListener('mousedown', () => handler(1));
+        // downButton.addEventListener('mouseup', () => mouseDown = false);
+        downButton.addEventListener('click', () => {
+            handler(1);
+            mouseDown = false;
+        });
 
-        leftButton.addEventListener('mousedown', () => handler(2));
-        leftButton.addEventListener('mouseup', () => mouseDown = false);
+        // leftButton.addEventListener('mousedown', () => handler(2));
+        // leftButton.addEventListener('mouseup', () => mouseDown = false);
+        leftButton.addEventListener('click', () => {
+            handler(2);
+            mouseDown = false;
+        });
 
-        rightButton.addEventListener('mousedown', () => handler(3));
-        rightButton.addEventListener('mouseup', () => mouseDown = false);
+        // rightButton.addEventListener('mousedown', () => handler(3));
+        // rightButton.addEventListener('mouseup', () => mouseDown = false);
+        rightButton.addEventListener('click', () => {
+            handler(3);
+            mouseDown = false;
+        });
 
         function drawThumb(img, label) {
             if (thumbDisplayed[label] == null) {
@@ -346,13 +403,13 @@ class Index extends Component {
             }
             truncatedMobileNet = await loadTruncatedMobileNet();
 
-            // init();
+            uiInit();
             // Warm up the model. This uploads weights to the GPU and compiles the WebGL
             // programs so the first time we collect data from the webcam it will be
             // quick.
-            // const screenShot = await webcam.capture();
-            // truncatedMobileNet.predict(screenShot.expandDims(0));
-            // screenShot.dispose();
+            const screenShot = await webcam.capture();
+            truncatedMobileNet.predict(screenShot.expandDims(0));
+            screenShot.dispose();
         }
 
         // Initialize the application.

@@ -178,6 +178,7 @@ document.getElementById('predict').addEventListener('click', () => {
 });
 
 async function init() {
+    console.log('xixi');
     try {
         webcam = await tfd.webcam(document.getElementById('webcam'));
     } catch (e) {

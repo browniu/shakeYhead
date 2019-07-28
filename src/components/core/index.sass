@@ -7,20 +7,25 @@ $co5: #ef6759
 $co5h: #d23c38
 $co6: #2cb79e
 
+body
+  background: $co1
+
 .core
   color: $co5
   height: 100vh
   width: 100vw
-  background: $co1
+  max-width: 400px
   padding: 15px
   box-sizing: border-box
 
 .display
-  width: 500px
+  width: 100%
+  height: 250px
 
   .display-item
     display: inline-block
     vertical-align: top
+    height: 100%
 
   .display-inner
     display: inline-block
@@ -28,11 +33,12 @@ $co6: #2cb79e
     background: $co3
     text-align: left
     vertical-align: top
-    padding: 10px 10px
+    padding: 5px 10px
     border-radius: 2px
+    transition: .3s ease
 
     & > .title
-      padding: 5px 0
+      padding: 9px 0
       text-align: center
       font-size: 12px
       color: $co4
@@ -55,58 +61,99 @@ $co6: #2cb79e
       background: $co3h
       display: inline-block
 
+      .info
+        position: absolute
+
     canvas
       vertical-align: bottom
+      box-sizing: border-box
+      display: none
+
 
   .display-main
-    margin-right: 25px
+    margin-right: 15px
+    width: 65%
+
     .display-inner
-      padding-bottom: 5px
+      width: 100%
+      height: 100%
+      position: relative
+      text-align: center
+
+      .title
+        position: absolute
+        left: 50%
+        transform: translateX(-50%)
+
+      .view
+        display: inline-block
+        height: calc(100% - 30px)
+
       #no-webcam
         display: none
+
       video
+        height: 100%
+        width: auto
         display: inline-block
         margin: 0
         padding: 0
         vertical-align: bottom
         transform: scaleX(-1)
+
   .display-sub
+    width: calc(35% - 15px)
+
+    .display-inner
+      width: 100%
+
+    ul
+      position: relative
+      height: 100%
+
     li
-      margin-bottom: 7px
+      height: calc(250px / 4 - 8px)
+      margin-bottom: 10px
 
       &:last-child
         margin-bottom: 0
-        margin-top: 8px
+        position: absolute
+        bottom: 0
+        width: 100%
+
       .view
         margin-right: 15px
 
 .panel
-  margin-top: 30px
+  margin-top: 15px
   background: $co4
   padding: 15px
   border-radius: 3px
   color: $co4
   box-sizing: border-box
-  width: 500px
+  width: 100%
 
   .panel-groups
-    margin-bottom: 5px
 
     .button
       cursor: pointer
       display: inline-block
       background: $co3
       margin-right: 10px
-      padding: 5px 15px
+      margin-bottom: 10px
+      padding: 5px 0px
       border-radius: 3px
       font-size: 12px
-      font-weight: lighter
-      width: calc(430px / 4 - 28px)
-
+      text-align: center
+      color: #f1f1f1cc
+      width: calc(50% - 5px)
+      input
+        margin-left: 5px
+        vertical-align: inherit
       &:active
         background: $co3h
 
-      &:last-child
+      &:nth-child(even)
         margin-right: 0
 
   .panel-button
@@ -116,10 +163,29 @@ $co6: #2cb79e
     background: $co5
     padding: 15px 0
     width: 100%
-    margin-top: 15px
+    margin-top: 10px
     text-align: center
     border-radius: 3px
+
+    span
+      display: none
+
+      &:first-child
+        display: inline-block
+
+    &.act
+      background: $co5h
+
+      span
+        &:first-child
+          display: none
+
+        &:last-child
+          display: inline-block
+
     &:active
       background: $co5h
 
 
+[data-active="up"] #display_up, [data-active="left"] #display_left, [data-active="right"] #display_right, [data-active="down"] #display_down
+  background: $co3h
