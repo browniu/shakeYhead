@@ -7,13 +7,27 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
     <!-- Import tfjs-vis -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
+    <!-- Import model-->
+    <script src="https://unpkg.com/@tensorflow-models/mobilenet"></script>
+    <script src="https://unpkg.com/@tensorflow-models/knn-classifier"></script>
+
 
     <!-- Import the main script file -->
-    <script src="super/data.js" type="module"></script>
-    <script src="super/script.js" type="module"></script>
+    <script src="migrateModel.js" type="module"></script>
 
 </head>
 
 <body>
+<div id="console"></div>
+<!-- Add an image that we will use to test -->
+<img id="img" src="img.jpg" width=227 height=227 style="display: none;" />
+<video style="opacity: 0.15" autoplay playsinline muted id="webcam" width="224" height="224"></video>
+<div class="panel">
+    <button id="class-a">a</button>
+    <button id="class-b">b</button>
+    <button id="class-c">c</button>
+</div>
+
+<!-- Load index.js after the content of the page -->
 </body>
 </html>

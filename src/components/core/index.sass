@@ -3,16 +3,14 @@ $co2: #43885a
 $co3: #5e455f
 $co3h: #2f242f
 $co4: #fffbe8
+$co4h: #d3baa8
 $co5: #ef6759
 $co5h: #d23c38
-$co6: #2cb79e
-
-body
-  background: $co1
+$co6: #6ac3c0
 
 .core
+  background: $co1
   color: $co5
-  height: 100vh
   width: 100vw
   max-width: 400px
   padding: 15px
@@ -38,7 +36,6 @@ body
     transition: .3s ease
 
     & > .title
-      padding: 9px 0
       text-align: center
       font-size: 12px
       color: $co4
@@ -63,6 +60,19 @@ body
 
       .info
         position: absolute
+        left: 50%
+        top: 45%
+        transform: translate(-50%, -50%)
+        font-size: 18px
+        width: 100%
+
+        &.countDown
+          font-size: 100px
+          font-weight: bold
+          display: none
+
+          &.act
+            display: inline-block
 
     canvas
       vertical-align: bottom
@@ -88,6 +98,11 @@ body
       .view
         display: inline-block
         height: calc(100% - 30px)
+        width: 100%
+        overflow: hidden
+
+        .view-content
+          background: $co3h
 
       #no-webcam
         display: none
@@ -100,6 +115,10 @@ body
         padding: 0
         vertical-align: bottom
         transform: scaleX(-1)
+        mix-blend-mode: lighten
+        opacity: .2
+        filter: blur(1px)
+
 
   .display-sub
     width: calc(35% - 15px)
@@ -132,6 +151,29 @@ body
   color: $co4
   box-sizing: border-box
   width: 100%
+  display: none
+  transition: .3s ease
+
+  &.disable
+    touch-action: none
+    pointer-events: none
+    opacity: .8
+
+  .check-groups
+    margin-bottom: 15px
+
+    .check
+      background: $co4h
+      padding: 0 10px
+      border-radius: 3px
+      margin-right: 10px
+
+      &:last-child
+        margin-right: 0
+
+      label
+        font-size: 12px
+        margin-left: 5px
 
   .panel-groups
 
@@ -147,9 +189,11 @@ body
       text-align: center
       color: #f1f1f1cc
       width: calc(50% - 5px)
+
       input
         margin-left: 5px
         vertical-align: inherit
+
       &:active
         background: $co3h
 
@@ -166,7 +210,8 @@ body
     margin-top: 10px
     text-align: center
     border-radius: 3px
-
+    &.disable
+      display: none
     span
       display: none
 
@@ -188,4 +233,4 @@ body
 
 
 [data-active="up"] #display_up, [data-active="left"] #display_left, [data-active="right"] #display_right, [data-active="down"] #display_down
-  background: $co3h
+  background: $co5h

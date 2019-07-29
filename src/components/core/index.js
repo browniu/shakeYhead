@@ -2,14 +2,13 @@ import React, {Component} from 'react';
 import './index.sass'
 import * as tf from '@tensorflow/tfjs';
 import * as tfd from '@tensorflow/tfjs-data';
-import {ControllerDataset} from '../sub/controller_dataset';
 
-// import * as ui from '../sub/ui';
-
-
-class Index extends Component {
+class ShakeY extends Component {
     constructor(props) {
         super(props);
+        this.config = {
+            rate: 30
+        }
         this.state = {
             displaySize: [224, 60],
             displaySub: [
@@ -19,24 +18,29 @@ class Index extends Component {
                 {id: 'down', title: '动作C'}
             ],
             modelAct: false,
-            trained: false
+            trained: false,
+            delay: false,
+            rate: true,
+            capturing: false,
+            countDown: 0,
+            cameraError: false
         }
     }
 
     render() {
         return (
             <div className={'core'}>
-                <div className="display" id={'controller'}>
+                <div className="display">
                     <div className="display-item display-main">
                         <div className="display-inner">
                             <div className="view">
-                                <div className="info" id={'status'}>载入模型</div>
-                                <div className="info" id={'no-webcam'}/>
-                                {/*<canvas></canvas>*/}
-                                <video id={'webcam'} style={{opacity: '0.15'}} autoPlay playsInline muted
-                                       src="https://ali.image.hellorf.com/images/21bed3696cddb114cee395427211334c.mp4"
-                                       width={this.state.displaySize[0]} height={this.state.displaySize[0]}/>
-                                {/*<video style={{opacity: '0.0'}} autoPlay playsInline muted id="webcam" width={this.state.displaySize[0]} height={this.state.displaySize[0]} />*/}
+                                <div className="info" id={'status'}>构建神经网络</div>
+                                <div className="info" id={'no-webcam'}>检查输入设备</div>
+                                {this.state.delay &&
+                                <div className={['info', 'countDown', this.state.countDown ? 'act' : ''].join(' ')}>{this.state.countDown}</div>}
+                                <div className="view-content">
+                                    <video id={'webcam'} autoPlay playsInline muted width={this.state.displaySize[0]} height={this.state.displaySize[0]} />
+                                </div>
                             </div>
                             <div className="title">监控视窗</div>
                         </div>
@@ -47,8 +51,7 @@ class Index extends Component {
                                 <li className="display-sub-item" key={index}>
                                     <div className="display-inner" id={'display_' + item.id}>
                                         <div className="view">
-                                            <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]}
-                                                    height={this.state.displaySize[1]}/>
+                                            <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]} height={this.state.displaySize[1]} />
                                         </div>
                                         <div className="info">
                                             <div className="title">{item.title}</div>
@@ -62,120 +65,161 @@ class Index extends Component {
 
                     </div>
                 </div>
-                <div className="panel">
+                <div className={['panel', this.state.capturing ? 'disable' : ''].join(' ')} id={'controller'}>
+                    <div className="check-groups">
+                        <span className="check">
+                            <input id={'check_delay'} value={this.state.delay} type="checkbox" onChange={() => {this.setState({delay: !this.state.delay})}} />
+                            <label htmlFor="check_delay">延时捕捉</label>
+                        </span>
+                        <span className="check">
+                            <input id={'check_rate'} value={this.state.rate} checked={true} type="checkbox" onChange={() => {this.setState({rate: !this.state.rate})}} />
+                            <label htmlFor="check_rate">高频捕捉</label>
+                        </span>
+                    </div>
                     <div className="panel-groups" onClick={() => {
                         this.setState({modelAct: false, trained: false})
                     }}>
 
                         {this.state.displaySub.map((button, index) => (
                             <span className={'button'} key={index}>
-                                <span style={{display: 'none'}} id={button.id}/>
-                                <span onClick={() => {
-                                    this.autoClick(button.id, 10)
-                                }}>{button.title + '捕捉'}</span>
+                                <span style={{display: 'none'}} id={button.id} />
+                                <span onClick={() => this.capture(button.id, this.state.delay)}>{button.title + '捕捉'}</span>
                             </span>
                         ))}
 
-                        <span className="button">3S延时捕捉<input type="checkbox"/></span>
-
                     </div>
 
-                    <div className={['panel-button', this.state.trained ? 'act' : ''].join(' ')} id={'train'}
-                         onClick={() => {
-                             setTimeout(() => {
-                                 this.setState({trained: true})
-                             }, 1000);
-                         }}><span id={'train-status'}>{this.state.trained ? '训练完毕' : '训练模型'}</span><span>训练完毕</span>
+                    <div className={['panel-button', this.state.trained ? 'act' : ''].join(' ')} id={'train'} onClick={() => {
+                        setTimeout(() => {
+                            this.setState({trained: true})
+                            if (!window.totals.some(e => e > 0)) this.setState({trained: false})
+                        }, 1000);
+                    }}><span id={'train-status'}>{this.state.trained ? '训练完毕' : '训练模型'}</span><span>训练完毕</span>
                     </div>
-                    <div className={['panel-button', this.state.modelAct ? 'act' : ''].join(' ')} id={'predict'}
-                         onClick={() => {
-                             this.setState({modelAct: true})
-                         }}>
-                        <span>启动模型</span>
+                    <div className={['panel-button', this.state.modelAct ? 'act' : '', this.state.trained ? '' : 'disable'].join(' ')} id={'predict'} onClick={() => {
+                        if (this.state.trained) this.setState({modelAct: true})
+                    }}>
+                        <span>启动神经网络</span>
                         <span>已启动</span>
                     </div>
-                    <div className="panel-button">保存模型</div>
+                    <div className={['panel-button', this.state.trained ? '' : 'disable'].join(' ')} id={'save'}>保存模型</div>
                 </div>
             </div>
         );
     }
 
-    autoClick(id, times) {
-        let i = 0;
+    capture(id, isDelay) {
+        let delay = 0
+        if (isDelay) {
+            delay = 3
+            this.countdown(delay + 1, 'countDown')
+        }
+        setTimeout(() => {
+            let rate = 10
+            if (this.state.rate) rate = this.config.rate
+            this.autoClick(id, rate, delay)
+        }, 1000)
+    }
+
+    countdown(count, output) {
         let timer = setInterval(() => {
-            i++;
-            document.getElementById(id).click();
-            if (i >= times) clearInterval(timer)
-        }, 50)
+            count--
+            this.setState({[output]: count})
+            if (count <= 0) clearInterval(timer)
+        }, 1000)
+    }
+
+    autoClick(id, rate, delay) {
+        this.setState({capturing: true})
+        setTimeout(() => {
+            let i = 0;
+            let timer = setInterval(() => {
+                i++;
+                document.getElementById(id).click();
+                if (i >= rate) {
+                    clearInterval(timer)
+                    this.setState({capturing: false})
+                }
+            }, 20)
+        }, delay * 1000)
     }
 
     componentDidMount() {
-        //ui------------------------------------------------------------------------------------------------------------
+
+        // 常量---------------------------------------------------------------------------------------------------------
+        class ControllerDataset {
+            constructor(numClasses) {
+                this.numClasses = numClasses;
+            }
+
+            addExample(example, label) {
+                const y = tf.tidy(
+                    () => tf.oneHot(tf.tensor1d([label]).toInt(), this.numClasses));
+
+                if (this.xs == null) {
+                    this.xs = tf.keep(example);
+                    this.ys = tf.keep(y);
+                } else {
+                    const oldX = this.xs;
+                    this.xs = tf.keep(oldX.concat(example, 0));
+
+                    const oldY = this.ys;
+                    this.ys = tf.keep(oldY.concat(y, 0));
+
+                    oldX.dispose();
+                    oldY.dispose();
+                    y.dispose();
+                }
+            }
+        }
+
         const CONTROLS = ['up', 'down', 'left', 'right'];
-        const CONTROL_CODES = [38, 40, 37, 39];
+        const NUM_CLASSES = 4;
+        let totals = [0, 0, 0, 0];
+        const controllerDataset = new ControllerDataset(NUM_CLASSES);
+        const thumbDisplayed = {};
+        const getLearningRate = () => 0.0001;
+        const getBatchSizeFraction = () => 0.4;
+        const getEpochs = () => 20;
+        const getDenseUnits = () => 100;
 
-        function uiInit() {
-            document.getElementById('controller').style.display = '';
-            statusElement.style.display = 'none';
-        }
-
-        const trainStatusElement = document.getElementById('train-status');
-
-        // Set hyper params from UI values.
-        // const learningRateElement = document.getElementById('learningRate');
-        const getLearningRate = () => 0.0001; //+learningRateElement.value;
-
-        // const batchSizeFractionElement = document.getElementById('batchSizeFraction');
-        const getBatchSizeFraction = () => 0.4;//+batchSizeFractionElement.value;
-
-        // const epochsElement = document.getElementById('epochs');
-        const getEpochs = () => 20;//+epochsElement.value;
-
-        // const denseUnitsElement = document.getElementById('dense-units');
-        const getDenseUnits = () => 100;//+denseUnitsElement.value;
         const statusElement = document.getElementById('status');
-
-        function startPacman() {
-            // google.pacman.startGameplay();
-        }
-
-        function predictClass(classId) {
-            // google.pacman.keyPressed(CONTROL_CODES[classId]);
-            document.body.setAttribute('data-active', CONTROLS[classId]);
-        }
-
-        function isPredicting() {
-            statusElement.style.visibility = 'visible';
-        }
-
-        function donePredicting() {
-            statusElement.style.visibility = 'hidden';
-        }
-
-        function trainStatus(status) {
-            trainStatusElement.innerText = status;
-        }
-
-        let addExampleHandler;
-
-        function setExampleHandler(handler) {
-            addExampleHandler = handler;
-        }
-
-        let mouseDown = false;
-        const totals = [0, 0, 0, 0];
-
+        const trainStatusElement = document.getElementById('train-status');
         const upButton = document.getElementById('up');
         const downButton = document.getElementById('down');
         const leftButton = document.getElementById('left');
         const rightButton = document.getElementById('right');
 
-        const thumbDisplayed = {};
 
+        // 变量---------------------------------------------------------------------------------------------------------
+        let webcam;
+        let mouseDown = false;
+        let addExampleHandler;
+        let model;
+        let truncatedMobileNet;
+        let isPredicting = false;
+        // 全局暴露
+        window.totals = totals
+
+        // 方法---------------------------------------------------------------------------------------------------------
+        // 获取图像数据
+        async function getImage() {
+            const img = await webcam.capture();
+            const processedImg =
+                tf.tidy(() => img.expandDims(0).toFloat().div(127).sub(1));
+            img.dispose();
+            return processedImg;
+        }
+
+        // 合成数据集
+        function setExampleHandler(handler) {
+            addExampleHandler = handler;
+        }
+
+        // 捕捉处理
         async function handler(label) {
             mouseDown = true;
             const className = CONTROLS[label];
-            const button = document.getElementById(className);
             const total = document.getElementById(className + '-total');
             while (mouseDown) {
                 addExampleHandler(label);
@@ -186,122 +230,56 @@ class Index extends Component {
             document.body.removeAttribute('data-active');
         }
 
-        // upButton.addEventListener('mousedown', () => handler(0));
-        // upButton.addEventListener('mouseup', () => mouseDown = false);
-        upButton.addEventListener('click', () => {
-            handler(0);
-            mouseDown = false;
-        });
-
-        // downButton.addEventListener('mousedown', () => handler(1));
-        // downButton.addEventListener('mouseup', () => mouseDown = false);
-        downButton.addEventListener('click', () => {
-            handler(1);
-            mouseDown = false;
-        });
-
-        // leftButton.addEventListener('mousedown', () => handler(2));
-        // leftButton.addEventListener('mouseup', () => mouseDown = false);
-        leftButton.addEventListener('click', () => {
-            handler(2);
-            mouseDown = false;
-        });
-
-        // rightButton.addEventListener('mousedown', () => handler(3));
-        // rightButton.addEventListener('mouseup', () => mouseDown = false);
-        rightButton.addEventListener('click', () => {
-            handler(3);
-            mouseDown = false;
-        });
-
+        // 捕捉绘制
         function drawThumb(img, label) {
             if (thumbDisplayed[label] == null) {
                 const thumbCanvas = document.getElementById(CONTROLS[label] + '-thumb');
-                draw(img, thumbCanvas);
+                const [width, height] = [224, 224];
+                const ctx = thumbCanvas.getContext('2d');
+                const imageData = new ImageData(width, height);
+                const data = img.dataSync();
+                for (let i = 0; i < height * width; ++i) {
+                    const j = i * 4;
+                    imageData.data[j] = (data[i * 3] + 1) * 127;
+                    imageData.data[j + 1] = (data[i * 3 + 1] + 1) * 127;
+                    imageData.data[j + 2] = (data[i * 3 + 2] + 1) * 127;
+                    imageData.data[j + 3] = 255;
+                }
+                ctx.putImageData(imageData, 0, 0);
             }
         }
 
-        function draw(image, canvas) {
-            const [width, height] = [224, 224];
-            const ctx = canvas.getContext('2d');
-            const imageData = new ImageData(width, height);
-            const data = image.dataSync();
-            for (let i = 0; i < height * width; ++i) {
-                const j = i * 4;
-                imageData.data[j + 0] = (data[i * 3 + 0] + 1) * 127;
-                imageData.data[j + 1] = (data[i * 3 + 1] + 1) * 127;
-                imageData.data[j + 2] = (data[i * 3 + 2] + 1) * 127;
-                imageData.data[j + 3] = 255;
-            }
-            ctx.putImageData(imageData, 0, 0);
-        }
-
-        //ui------------------------------------------------------------------------------------------------------------
-        //index---------------------------------------------------------------------------------------------------------
-        // The number of classes we want to predict. In this example, we will be
-        // predicting 4 classes for up, down, left, and right.
-        const NUM_CLASSES = 4;
-
-        // A webcam iterator that generates Tensors from the images from the webcam.
-        let webcam;
-
-        // The dataset object where we will store activations.
-        const controllerDataset = new ControllerDataset(NUM_CLASSES);
-
-        let truncatedMobileNet;
-        let model;
-
-        // Loads mobilenet and returns a model that returns the internal activation
-        // we'll use as input to our classifier model.
+        // 模型迁移应用
         async function loadTruncatedMobileNet() {
             const mobilenet = await tf.loadLayersModel(
                 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
-
-            // Return a model that outputs an internal activation.
+            // 返回一个卷积层作为激活器
             const layer = mobilenet.getLayer('conv_pw_13_relu');
             return tf.model({inputs: mobilenet.inputs, outputs: layer.output});
         }
 
-        // When the UI buttons are pressed, read a frame from the webcam and associate
-        // it with the class label given by the button. up, down, left, right are
-        // labels 0, 1, 2, 3 respectively.
-        setExampleHandler(async label => {
-            let img = await getImage();
-
-            controllerDataset.addExample(truncatedMobileNet.predict(img), label);
-
-            // Draw the preview thumbnail.
-            drawThumb(img, label);
-            img.dispose();
-        })
-
-        /**
-         * Sets up and trains the classifier.
-         */
+        // 建模-训练
         async function train() {
             if (controllerDataset.xs == null) {
-                throw new Error('Add some examples before training!');
+                // throw new Error('Add some examples before training!');
+                alert('捕捉一些画面后进行训练')
+                return
             }
 
-            // Creates a 2-layer fully connected model. By creating a separate model,
-            // rather than adding layers to the mobilenet model, we "freeze" the weights
-            // of the mobilenet model, and only train weights from the new model.
+            // 创建一个包含两个全链接层的模型
             model = tf.sequential({
                 layers: [
-                    // Flattens the input to a vector so we can use it in a dense layer. While
-                    // technically a layer, this only performs a reshape (and has no training
-                    // parameters).
+                    // 展开数据
                     tf.layers.flatten(
                         {inputShape: truncatedMobileNet.outputs[0].shape.slice(1)}),
-                    // Layer 1.
+                    // 全连接层1
                     tf.layers.dense({
                         units: getDenseUnits(),
                         activation: 'relu',
                         kernelInitializer: 'varianceScaling',
                         useBias: true
                     }),
-                    // Layer 2. The number of units of the last layer should correspond
-                    // to the number of classes we want to predict.
+                    // 全链接层2-输出层
                     tf.layers.dense({
                         units: NUM_CLASSES,
                         kernelInitializer: 'varianceScaling',
@@ -311,17 +289,12 @@ class Index extends Component {
                 ]
             });
 
-            // Creates the optimizers which drives training of the model.
+            // 创建一个优化器
             const optimizer = tf.train.adam(getLearningRate());
-            // We use categoricalCrossentropy which is the loss function we use for
-            // categorical classification which measures the error between our predicted
-            // probability distribution over classes (probability that an input is of each
-            // class), versus the label (100% probability in the true class)>
+            // 编译模型
             model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
 
-            // We parameterize batch size as a fraction of the entire dataset because the
-            // number of examples that are collected depends on how many examples the user
-            // collects. This allows us to have a flexible batch size.
+            // 轮栈大小
             const batchSize =
                 Math.floor(controllerDataset.xs.shape[0] * getBatchSizeFraction());
             if (!(batchSize > 0)) {
@@ -329,7 +302,7 @@ class Index extends Component {
                     `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
             }
 
-            // Train the model! Model.fit() will shuffle xs & ys so we don't have to.
+            // 训练模型
             model.fit(controllerDataset.xs, controllerDataset.ys, {
                 batchSize,
                 epochs: getEpochs(),
@@ -341,8 +314,38 @@ class Index extends Component {
             });
         }
 
-        isPredicting = false;
+        // 事件监听
+        function listener(_this) {
+            let that = _this;
+            [upButton, downButton, leftButton, rightButton].map((button, index) => button.addEventListener(('click'), () => {
+                handler(index);
+                mouseDown = false
+            }))
+            document.getElementById('train').addEventListener('click', async () => {
+                trainStatus('Training...');
+                await tf.nextFrame();
+                await tf.nextFrame();
+                isPredicting = false;
+                train();
+            });
+            document.getElementById('predict').addEventListener('click', () => {
+                if (that.state.trained) {
+                    isPredicting = true;
+                    predict();
+                } else {
+                    alert('未经训练')
+                }
+            });
 
+            document.getElementById('save').addEventListener("click", () => saveModel())
+        }
+
+        // 训练状态
+        function trainStatus(status) {
+            trainStatusElement.innerText = status;
+        }
+
+        // 预测
         async function predict() {
             // isPredicting();
             while (isPredicting) {
@@ -363,37 +366,13 @@ class Index extends Component {
                 const classId = (await predictedClass.data())[0];
                 img.dispose();
 
-                predictClass(classId);
+                document.body.setAttribute('data-active', CONTROLS[classId]);
                 await tf.nextFrame();
             }
             // donePredicting();
         }
 
-        /**
-         * Captures a frame from the webcam and normalizes it between -1 and 1.
-         * Returns a batched image (1-element batch) of shape [1, w, h, c].
-         */
-        async function getImage() {
-            const img = await webcam.capture();
-            const processedImg =
-                tf.tidy(() => img.expandDims(0).toFloat().div(127).sub(1));
-            img.dispose();
-            return processedImg;
-        }
-
-        document.getElementById('train').addEventListener('click', async () => {
-            trainStatus('Training...');
-            await tf.nextFrame();
-            await tf.nextFrame();
-            isPredicting = false;
-            train();
-        });
-        document.getElementById('predict').addEventListener('click', () => {
-            // ui.startPacman();
-            isPredicting = true;
-            predict();
-        });
-
+        // 初始化
         async function init() {
             try {
                 webcam = await tfd.webcam(document.getElementById('webcam'));
@@ -403,19 +382,44 @@ class Index extends Component {
             }
             truncatedMobileNet = await loadTruncatedMobileNet();
 
-            uiInit();
+            document.getElementById('controller').style.display = 'block';
+            statusElement.style.display = 'none';
             // Warm up the model. This uploads weights to the GPU and compiles the WebGL
             // programs so the first time we collect data from the webcam it will be
             // quick.
-            const screenShot = await webcam.capture();
-            truncatedMobileNet.predict(screenShot.expandDims(0));
-            screenShot.dispose();
+            if (webcam) {
+                const screenShot = await webcam.capture();
+                truncatedMobileNet.predict(screenShot.expandDims(0));
+                screenShot.dispose();
+            } else {
+                document.getElementById('controller').style.display = 'none';
+            }
         }
 
-        // Initialize the application.
-        init();
-        //index---------------------------------------------------------------------------------------------------------
+        // 保存模型
+        async function saveModel() {
+            await model.save('downloads://shakeYhead')
+        }
+
+        // 执行---------------------------------------------------------------------------------------------------------
+        // 合成数据集
+        setExampleHandler(async label => {
+            let img = await getImage();
+
+            controllerDataset.addExample(truncatedMobileNet.predict(img), label);
+
+            // Draw the preview thumbnail.
+            drawThumb(img, label);
+            img.dispose();
+        })
+
+        // 事件监听
+        listener(this)
+
+        // 初始化
+        init()
+
     }
 }
 
-export default Index;
+export default ShakeY;
