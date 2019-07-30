@@ -72,7 +72,7 @@ class ShakeY extends Component {
                             <label htmlFor="check_delay">延时捕捉</label>
                         </span>
                         <span className="check">
-                            <input id={'check_rate'} value={this.state.rate} checked={true} type="checkbox" onChange={() => {this.setState({rate: !this.state.rate})}} />
+                            <input id={'check_rate'} value={this.state.rate} checked={this.state.rate} type="checkbox" onChange={() => {this.setState({rate: !this.state.rate})}} />
                             <label htmlFor="check_rate">高频捕捉</label>
                         </span>
                     </div>
@@ -103,6 +103,8 @@ class ShakeY extends Component {
                         <span>已启动</span>
                     </div>
                     <div className={['panel-button', this.state.trained ? '' : 'disable'].join(' ')} id={'save'}>保存模型</div>
+
+                    <div className="panel-button" id={'load'}>载入模型</div>
                 </div>
             </div>
         );
@@ -144,9 +146,9 @@ class ShakeY extends Component {
         }, delay * 1000)
     }
 
-    componentDidMount() {
 
-        // 常量---------------------------------------------------------------------------------------------------------
+    componentDidMount() {
+        // 构造器--------------------------------------------------------------------------------------------------------
         class ControllerDataset {
             constructor(numClasses) {
                 this.numClasses = numClasses;
@@ -173,6 +175,8 @@ class ShakeY extends Component {
             }
         }
 
+        // 常量---------------------------------------------------------------------------------------------------------
+        const that = this
         const CONTROLS = ['up', 'down', 'left', 'right'];
         const NUM_CLASSES = 4;
         let totals = [0, 0, 0, 0];
@@ -180,8 +184,8 @@ class ShakeY extends Component {
         const thumbDisplayed = {};
         const getLearningRate = () => 0.0001;
         const getBatchSizeFraction = () => 0.4;
-        const getEpochs = () => 20;
-        const getDenseUnits = () => 100;
+        const getEpochs = () => 30;
+        const getDenseUnits = () => 30;
 
         const statusElement = document.getElementById('status');
         const trainStatusElement = document.getElementById('train-status');
@@ -198,6 +202,7 @@ class ShakeY extends Component {
         let model;
         let truncatedMobileNet;
         let isPredicting = false;
+        let isLoadModel = false
         // 全局暴露
         window.totals = totals
 
@@ -258,42 +263,47 @@ class ShakeY extends Component {
             return tf.model({inputs: mobilenet.inputs, outputs: layer.output});
         }
 
-        // 建模-训练
+        // 建立模型
+        async function getModel() {
+            if (isLoadModel) {
+                model = await tf.loadLayersModel('http:localhost/model/modelName.json')
+            } else {
+                // 创建一个包含两个全链接层的模型
+                model = tf.sequential({
+                    layers: [
+                        // 展开数据
+                        tf.layers.flatten(
+                            {inputShape: truncatedMobileNet.outputs[0].shape.slice(1)}),
+                        // 全连接层1
+                        tf.layers.dense({
+                            units: getDenseUnits(),
+                            activation: 'relu',
+                            kernelInitializer: 'varianceScaling',
+                            useBias: true
+                        }),
+                        // 全链接层2-输出层
+                        tf.layers.dense({
+                            units: NUM_CLASSES,
+                            kernelInitializer: 'varianceScaling',
+                            useBias: false,
+                            activation: 'softmax'
+                        })
+                    ]
+                });
+                // 创建一个优化器
+                const optimizer = tf.train.adam(getLearningRate());
+                // 编译模型
+                model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
+            }
+        }
+
+        // 训练模型
         async function train() {
             if (controllerDataset.xs == null) {
-                // throw new Error('Add some examples before training!');
                 alert('捕捉一些画面后进行训练')
                 return
             }
-
-            // 创建一个包含两个全链接层的模型
-            model = tf.sequential({
-                layers: [
-                    // 展开数据
-                    tf.layers.flatten(
-                        {inputShape: truncatedMobileNet.outputs[0].shape.slice(1)}),
-                    // 全连接层1
-                    tf.layers.dense({
-                        units: getDenseUnits(),
-                        activation: 'relu',
-                        kernelInitializer: 'varianceScaling',
-                        useBias: true
-                    }),
-                    // 全链接层2-输出层
-                    tf.layers.dense({
-                        units: NUM_CLASSES,
-                        kernelInitializer: 'varianceScaling',
-                        useBias: false,
-                        activation: 'softmax'
-                    })
-                ]
-            });
-
-            // 创建一个优化器
-            const optimizer = tf.train.adam(getLearningRate());
-            // 编译模型
-            model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
-
+            await getModel()
             // 轮栈大小
             const batchSize =
                 Math.floor(controllerDataset.xs.shape[0] * getBatchSizeFraction());
@@ -301,7 +311,6 @@ class ShakeY extends Component {
                 throw new Error(
                     `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
             }
-
             // 训练模型
             model.fit(controllerDataset.xs, controllerDataset.ys, {
                 batchSize,
@@ -398,7 +407,12 @@ class ShakeY extends Component {
 
         // 保存模型
         async function saveModel() {
-            await model.save('downloads://shakeYhead')
+            await model.save('localstorage://shakeYhead')
+        }
+
+        // 载入模型
+        async function loadModel() {
+
         }
 
         // 执行---------------------------------------------------------------------------------------------------------
