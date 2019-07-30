@@ -154,6 +154,12 @@ $co6: #6ac3c0
   display: none
   transition: .3s ease
 
+  .function-group
+    display: none
+
+    &.act
+      display: block
+
   &.disable
     touch-action: none
     pointer-events: none
@@ -210,8 +216,10 @@ $co6: #6ac3c0
     margin-top: 10px
     text-align: center
     border-radius: 3px
+
     &.disable
       display: none
+
     span
       display: none
 

@@ -12,10 +12,10 @@ class ShakeY extends Component {
         this.state = {
             displaySize: [224, 60],
             displaySub: [
-                {id: 'up', title: '基本动作'},
-                {id: 'left', title: '动作A'},
-                {id: 'right', title: '动作B'},
-                {id: 'down', title: '动作C'}
+                {id: 'up', title: '基本动作', total: 0},
+                {id: 'left', title: '动作A', total: 0},
+                {id: 'right', title: '动作B', total: 0},
+                {id: 'down', title: '动作C', total: 0}
             ],
             modelAct: false,
             trained: false,
@@ -23,7 +23,12 @@ class ShakeY extends Component {
             rate: true,
             capturing: false,
             countDown: 0,
-            cameraError: false
+            cameraError: false,
+            loadModelAble: false,
+            loadModel: true,
+            loadMethodSelect: false,
+            saved: false,
+            named: false,
         }
     }
 
@@ -54,8 +59,9 @@ class ShakeY extends Component {
                                             <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]} height={this.state.displaySize[1]} />
                                         </div>
                                         <div className="info">
-                                            <div className="title">{item.title}</div>
-                                            <div className="sub">Train: <span id={item.id + '-total'}>0</span></div>
+                                            <div className="title" onClick={() => this.nameIt(index, item.title)}>{item.title}</div>
+                                            <div className="sub">Train: <span id={item.id + '-total'}>{item.total}</span>
+                                            </div>
                                         </div>
 
                                     </div>
@@ -66,35 +72,42 @@ class ShakeY extends Component {
                     </div>
                 </div>
                 <div className={['panel', this.state.capturing ? 'disable' : ''].join(' ')} id={'controller'}>
-                    <div className="check-groups">
+
+                    <div className={['function-group train', this.state.loadModel ? '' : 'act'].join(' ')}>
+                        <div className="check-groups">
                         <span className="check">
                             <input id={'check_delay'} value={this.state.delay} type="checkbox" onChange={() => {this.setState({delay: !this.state.delay})}} />
                             <label htmlFor="check_delay">延时捕捉</label>
                         </span>
-                        <span className="check">
+                            <span className="check">
                             <input id={'check_rate'} value={this.state.rate} checked={this.state.rate} type="checkbox" onChange={() => {this.setState({rate: !this.state.rate})}} />
                             <label htmlFor="check_rate">高频捕捉</label>
                         </span>
-                    </div>
-                    <div className="panel-groups" onClick={() => {
-                        this.setState({modelAct: false, trained: false})
-                    }}>
-
-                        {this.state.displaySub.map((button, index) => (
-                            <span className={'button'} key={index}>
+                        </div>
+                        <div className="panel-groups" onClick={() => {
+                            this.setState({modelAct: false, trained: false, saved: false})
+                        }}>
+                            {this.state.displaySub.map((button, index) => (
+                                <span className={'button'} key={index}>
                                 <span style={{display: 'none'}} id={button.id} />
                                 <span onClick={() => this.capture(button.id, this.state.delay)}>{button.title + '捕捉'}</span>
                             </span>
-                        ))}
+                            ))}
+                        </div>
 
+                        <div className={['panel-button', this.state.trained ? 'act' : ''].join(' ')} id={'train'}>
+                            <span id={'train-status'}>{this.state.trained ? '训练完毕' : '训练模型'}</span>
+                        </div>
+
+                        <div className={['panel-button', this.state.trained ? '' : 'disable', this.state.saved ? 'act' : ''].join(' ')} id={'save'}>{this.state.saved ? '保存成功' : '保存模型'}</div>
                     </div>
-
-                    <div className={['panel-button', this.state.trained ? 'act' : ''].join(' ')} id={'train'} onClick={() => {
-                        setTimeout(() => {
-                            this.setState({trained: true})
-                            if (!window.totals.some(e => e > 0)) this.setState({trained: false})
-                        }, 1000);
-                    }}><span id={'train-status'}>{this.state.trained ? '训练完毕' : '训练模型'}</span><span>训练完毕</span>
+                    <div className={['function-group select', this.state.loadMethodSelect ? '' : 'act'].join(' ')}>
+                        <div className="panel-button" onClick={() => this.setState({
+                            loadModel: false,
+                            loadMethodSelect: true
+                        })}>新建模型
+                        </div>
+                        <div className="panel-button" style={{display: this.state.loadModel && this.state.loadModelAble ? 'inline-block' : 'none'}} id={'load'} onClick={() => this.setState({loadMethodSelect: true})}>载入模型</div>
                     </div>
                     <div className={['panel-button', this.state.modelAct ? 'act' : '', this.state.trained ? '' : 'disable'].join(' ')} id={'predict'} onClick={() => {
                         if (this.state.trained) this.setState({modelAct: true})
@@ -102,9 +115,6 @@ class ShakeY extends Component {
                         <span>启动神经网络</span>
                         <span>已启动</span>
                     </div>
-                    <div className={['panel-button', this.state.trained ? '' : 'disable'].join(' ')} id={'save'}>保存模型</div>
-
-                    <div className="panel-button" id={'load'}>载入模型</div>
                 </div>
             </div>
         );
@@ -146,8 +156,19 @@ class ShakeY extends Component {
         }, delay * 1000)
     }
 
+    nameIt(index, name) {
+
+        console.log(index, name)
+        let newName = prompt("自定义动作名称", name)
+        let list = this.state.displaySub
+        list[index].title = newName
+        this.setState({displaySub: list, named: true})
+    }
 
     componentDidMount() {
+        // 其他
+        lsJudge(this)
+
         // 构造器--------------------------------------------------------------------------------------------------------
         class ControllerDataset {
             constructor(numClasses) {
@@ -202,11 +223,19 @@ class ShakeY extends Component {
         let model;
         let truncatedMobileNet;
         let isPredicting = false;
-        let isLoadModel = false
         // 全局暴露
         window.totals = totals
 
         // 方法---------------------------------------------------------------------------------------------------------
+        // 判断存档
+        function lsJudge(that) {
+            let result = localStorage.getItem('shakeYhead')
+            if (result) {
+                that.setState({loadModelAble: true})
+                console.log(JSON.parse(result).actions)
+            } else that.setState({loadMethodSelect: true, loadModel: false})
+        }
+
         // 获取图像数据
         async function getImage() {
             const img = await webcam.capture();
@@ -256,45 +285,10 @@ class ShakeY extends Component {
 
         // 模型迁移应用
         async function loadTruncatedMobileNet() {
-            const mobilenet = await tf.loadLayersModel(
-                'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+            const mobilenet = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
             // 返回一个卷积层作为激活器
             const layer = mobilenet.getLayer('conv_pw_13_relu');
             return tf.model({inputs: mobilenet.inputs, outputs: layer.output});
-        }
-
-        // 建立模型
-        async function getModel() {
-            if (isLoadModel) {
-                model = await tf.loadLayersModel('http:localhost/model/modelName.json')
-            } else {
-                // 创建一个包含两个全链接层的模型
-                model = tf.sequential({
-                    layers: [
-                        // 展开数据
-                        tf.layers.flatten(
-                            {inputShape: truncatedMobileNet.outputs[0].shape.slice(1)}),
-                        // 全连接层1
-                        tf.layers.dense({
-                            units: getDenseUnits(),
-                            activation: 'relu',
-                            kernelInitializer: 'varianceScaling',
-                            useBias: true
-                        }),
-                        // 全链接层2-输出层
-                        tf.layers.dense({
-                            units: NUM_CLASSES,
-                            kernelInitializer: 'varianceScaling',
-                            useBias: false,
-                            activation: 'softmax'
-                        })
-                    ]
-                });
-                // 创建一个优化器
-                const optimizer = tf.train.adam(getLearningRate());
-                // 编译模型
-                model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
-            }
         }
 
         // 训练模型
@@ -303,7 +297,29 @@ class ShakeY extends Component {
                 alert('捕捉一些画面后进行训练')
                 return
             }
-            await getModel()
+            // 创建一个包含两个全链接层的模型
+            model = tf.sequential({
+                layers: [
+                    // 展开数据
+                    tf.layers.flatten(
+                        {inputShape: truncatedMobileNet.outputs[0].shape.slice(1)}),
+                    // 全连接层1
+                    tf.layers.dense({
+                        units: getDenseUnits(),
+                        activation: 'relu',
+                        kernelInitializer: 'varianceScaling',
+                        useBias: true
+                    }),
+                    // 全链接层2-输出层
+                    tf.layers.dense({
+                        units: NUM_CLASSES,
+                        kernelInitializer: 'varianceScaling',
+                        useBias: false,
+                        activation: 'softmax'
+                    })
+                ]
+            });
+            model.compile({optimizer: tf.train.adam(getLearningRate()), loss: 'categoricalCrossentropy'});
             // 轮栈大小
             const batchSize =
                 Math.floor(controllerDataset.xs.shape[0] * getBatchSizeFraction());
@@ -317,15 +333,14 @@ class ShakeY extends Component {
                 epochs: getEpochs(),
                 callbacks: {
                     onBatchEnd: async (batch, logs) => {
-                        trainStatus('Loss: ' + logs.loss.toFixed(5));
+                        that.setState({trained: true})
                     }
                 }
             });
         }
 
         // 事件监听
-        function listener(_this) {
-            let that = _this;
+        function listener() {
             [upButton, downButton, leftButton, rightButton].map((button, index) => button.addEventListener(('click'), () => {
                 handler(index);
                 mouseDown = false
@@ -337,16 +352,10 @@ class ShakeY extends Component {
                 isPredicting = false;
                 train();
             });
-            document.getElementById('predict').addEventListener('click', () => {
-                if (that.state.trained) {
-                    isPredicting = true;
-                    predict();
-                } else {
-                    alert('未经训练')
-                }
-            });
+            document.getElementById('predict').addEventListener('click', () => startModel());
 
             document.getElementById('save').addEventListener("click", () => saveModel())
+            document.getElementById('load').addEventListener("click", () => loadModel())
         }
 
         // 训练状态
@@ -381,6 +390,16 @@ class ShakeY extends Component {
             // donePredicting();
         }
 
+        // 启动模型
+        async function startModel() {
+            if (that.state.trained) {
+                isPredicting = true;
+                await predict();
+            } else {
+                alert('无法启动未经训练的神经网络')
+            }
+        }
+
         // 初始化
         async function init() {
             try {
@@ -393,9 +412,6 @@ class ShakeY extends Component {
 
             document.getElementById('controller').style.display = 'block';
             statusElement.style.display = 'none';
-            // Warm up the model. This uploads weights to the GPU and compiles the WebGL
-            // programs so the first time we collect data from the webcam it will be
-            // quick.
             if (webcam) {
                 const screenShot = await webcam.capture();
                 truncatedMobileNet.predict(screenShot.expandDims(0));
@@ -407,12 +423,33 @@ class ShakeY extends Component {
 
         // 保存模型
         async function saveModel() {
-            await model.save('localstorage://shakeYhead')
+            if (!that.state.named) {
+                alert('保存模型前至少为一个动作自定义命名')
+                return
+            }
+            let saveResult = await model.save('indexeddb://shakeYhead')
+            console.log('保存结果', saveResult)
+            if (saveResult.modelArtifactsInfo.dateSaved) {
+                that.setState({saved: true})
+                let actions = that.state.displaySub
+                actions.map((e, index) => {
+                    e.total = window.totals[index]
+                })
+                console.log(actions)
+                localStorage.setItem('shakeYhead', JSON.stringify({
+                    actions: actions,
+                    date: saveResult.modelArtifactsInfo.dateSaved
+                }))
+            }
+
         }
 
         // 载入模型
         async function loadModel() {
-
+            console.log('载入固化模型')
+            that.setState({trained: true, displaySub: JSON.parse(localStorage.getItem('shakeYhead')).actions})
+            isPredicting = true;
+            model = await tf.loadLayersModel('indexeddb://shakeYhead')
         }
 
         // 执行---------------------------------------------------------------------------------------------------------
@@ -428,7 +465,7 @@ class ShakeY extends Component {
         })
 
         // 事件监听
-        listener(this)
+        listener()
 
         // 初始化
         init()
