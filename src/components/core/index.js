@@ -9,6 +9,8 @@ class ShakeY extends Component {
         this.config = {
             rate: 30
         }
+        this.isMobile = () => /Android|webOS|iPhone|iPod|BlackBerry|iPad/i.test(navigator.userAgent)
+        this.isWx = () => /MicroMessenger/i.test(navigator.userAgent)
         this.state = {
             displaySize: [224, 60],
             displaySub: [
@@ -29,6 +31,7 @@ class ShakeY extends Component {
             loadMethodSelect: false,
             saved: false,
             named: false,
+            acc: null
         }
     }
 
@@ -85,7 +88,7 @@ class ShakeY extends Component {
                         </span>
                         </div>
                         <div className="panel-groups" onClick={() => {
-                            this.setState({modelAct: false, trained: false, saved: false})
+                            this.setState({modelAct: false, trained: false, saved: false, acc: null})
                         }}>
                             {this.state.displaySub.map((button, index) => (
                                 <span className={'button'} key={index}>
@@ -96,10 +99,12 @@ class ShakeY extends Component {
                         </div>
 
                         <div className={['panel-button', this.state.trained ? 'act' : ''].join(' ')} id={'train'}>
-                            <span id={'train-status'}>{this.state.trained ? '训练完毕' : '训练模型'}</span>
+                            <span id={'train-status'}><i id={'train_info'}>{this.state.trained ? '训练结束' : '训练模型'}</i>
+                                <i>{this.state.acc}</i>
+                            </span>
                         </div>
 
-                        <div className={['panel-button', this.state.trained ? '' : 'disable', this.state.saved ? 'act' : ''].join(' ')} id={'save'}>{this.state.saved ? '保存成功' : '保存模型'}</div>
+                        <div className={['panel-button', this.state.trained && this.state.modelAct ? '' : 'disable', this.state.saved ? 'act' : ''].join(' ')} id={'save'}>{this.state.saved ? '保存成功' : '保存模型'}</div>
                     </div>
                     <div className={['function-group select', this.state.loadMethodSelect ? '' : 'act'].join(' ')}>
                         <div className="panel-button" onClick={() => this.setState({
@@ -128,8 +133,12 @@ class ShakeY extends Component {
         }
         setTimeout(() => {
             let rate = 10
-            if (this.state.rate) rate = this.config.rate
-            this.autoClick(id, rate, delay)
+            let during = 50
+            if (this.state.rate) {
+                rate = this.config.rate
+                during = 20
+            }
+            this.autoClick(id, rate, delay, during)
         }, 1000)
     }
 
@@ -141,7 +150,7 @@ class ShakeY extends Component {
         }, 1000)
     }
 
-    autoClick(id, rate, delay) {
+    autoClick(id, rate, delay, during) {
         this.setState({capturing: true})
         setTimeout(() => {
             let i = 0;
@@ -152,7 +161,7 @@ class ShakeY extends Component {
                     clearInterval(timer)
                     this.setState({capturing: false})
                 }
-            }, 20)
+            }, during)
         }, delay * 1000)
     }
 
@@ -166,8 +175,10 @@ class ShakeY extends Component {
     }
 
     componentDidMount() {
-        // 其他
+        // 初始化
         lsJudge(this)
+
+        if (this.isMobile()) this.setState({rate: false})
 
         // 构造器--------------------------------------------------------------------------------------------------------
         class ControllerDataset {
@@ -206,7 +217,7 @@ class ShakeY extends Component {
         const getLearningRate = () => 0.0001;
         const getBatchSizeFraction = () => 0.4;
         const getEpochs = () => 30;
-        const getDenseUnits = () => 30;
+        const getDenseUnits = () => 50;
 
         const statusElement = document.getElementById('status');
         const trainStatusElement = document.getElementById('train-status');
@@ -293,10 +304,8 @@ class ShakeY extends Component {
 
         // 训练模型
         async function train() {
-            if (controllerDataset.xs == null) {
-                alert('捕捉一些画面后进行训练')
-                return
-            }
+            if (controllerDataset.xs == null || that.state.trained) return
+            document.getElementById('train_info').innerText = '训练中...'
             // 创建一个包含两个全链接层的模型
             model = tf.sequential({
                 layers: [
@@ -319,7 +328,11 @@ class ShakeY extends Component {
                     })
                 ]
             });
-            model.compile({optimizer: tf.train.adam(getLearningRate()), loss: 'categoricalCrossentropy'});
+            model.compile({
+                optimizer: tf.train.adam(getLearningRate()),
+                loss: 'categoricalCrossentropy',
+                metrics: ['accuracy']
+            });
             // 轮栈大小
             const batchSize =
                 Math.floor(controllerDataset.xs.shape[0] * getBatchSizeFraction());
@@ -328,15 +341,18 @@ class ShakeY extends Component {
                     `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
             }
             // 训练模型
-            model.fit(controllerDataset.xs, controllerDataset.ys, {
+            let acc = 0
+            await model.fit(controllerDataset.xs, controllerDataset.ys, {
                 batchSize,
                 epochs: getEpochs(),
                 callbacks: {
                     onBatchEnd: async (batch, logs) => {
-                        that.setState({trained: true})
+                        if (batch === 2) acc = ' (准确度:' + ((parseInt(logs.acc * 10000) / 10000).toFixed(4) - 0.0001) + '%)'
                     }
                 }
             });
+            console.log('训练结束')
+            that.setState({trained: true, acc: acc})
         }
 
         // 事件监听
@@ -346,7 +362,6 @@ class ShakeY extends Component {
                 mouseDown = false
             }))
             document.getElementById('train').addEventListener('click', async () => {
-                trainStatus('Training...');
                 await tf.nextFrame();
                 await tf.nextFrame();
                 isPredicting = false;
@@ -358,14 +373,8 @@ class ShakeY extends Component {
             document.getElementById('load').addEventListener("click", () => loadModel())
         }
 
-        // 训练状态
-        function trainStatus(status) {
-            trainStatusElement.innerText = status;
-        }
-
         // 预测
         async function predict() {
-            // isPredicting();
             while (isPredicting) {
                 // Capture the frame from the webcam.
                 const img = await getImage();
@@ -423,6 +432,10 @@ class ShakeY extends Component {
 
         // 保存模型
         async function saveModel() {
+            if (that.isWx()) {
+                alert('微信浏览器无法储存模型数据')
+                return
+            }
             if (!that.state.named) {
                 alert('保存模型前至少为一个动作自定义命名')
                 return
