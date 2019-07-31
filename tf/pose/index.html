@@ -19,6 +19,7 @@
 <img id='cat' src='pose.jpg ' />
 <img id='cat2' src='pose2.jpeg ' />
 <img id='cat3' src='pose3.jpeg ' />
+<img id='cat4' src='pose4.jpg ' />
 
 <script>
 
@@ -29,6 +30,7 @@
     const imageElement = document.getElementById('cat');
     const imageElement2 = document.getElementById('cat2');
     const imageElement3 = document.getElementById('cat3');
+    const imageElement4 = document.getElementById('cat4');
 
     async function init() {
         // 获取姿势数据
@@ -36,10 +38,12 @@
         let poseVec1 = await getPoseData(net, imageElement)
         let poseVec2 = await getPoseData(net, imageElement2)
         let poseVec3 = await getPoseData(net, imageElement3)
-        console.log(poseVec1, poseVec2)
+        let poseVec4 = await getPoseData(net, imageElement4)
+        console.log(poseVec1, poseVec2, poseVec3, poseVec4)
         compute(poseVec1, poseVec1)
         compute(poseVec1, poseVec2)
         compute(poseVec1, poseVec3)
+        compute(poseVec1, poseVec4)
     }
 
     // 解析姿势
