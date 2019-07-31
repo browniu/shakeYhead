@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <script src="https://unpkg.com/@tensorflow/tfjs"></script>
+    <script src="https://unpkg.com/@tensorflow-models/posenet"></script>
+</head>
+
+<style>
+    img {
+        /*display: none;*/
+    }
+</style>
+<body>
+<img id='cat' src='pose.jpg ' />
+<img id='cat2' src='pose2.jpeg ' />
+<img id='cat3' src='pose3.jpeg ' />
+
+<script>
+
+    const imageScaleFactor = 0.5;
+    const flipHorizontal = false;
+    const outputStride = 16;
+    const maxPoseDetections = 2;
+    const imageElement = document.getElementById('cat');
+    const imageElement2 = document.getElementById('cat2');
+    const imageElement3 = document.getElementById('cat3');
+
+    async function init() {
+        // 获取姿势数据
+        let net = await posenet.load()
+        let poseVec1 = await getPoseData(net, imageElement)
+        let poseVec2 = await getPoseData(net, imageElement2)
+        let poseVec3 = await getPoseData(net, imageElement3)
+        console.log(poseVec1, poseVec2)
+        compute(poseVec1, poseVec1)
+        compute(poseVec1, poseVec2)
+        compute(poseVec1, poseVec3)
+    }
+
+    // 解析姿势
+    async function getPoseData(net, img) {
+        let poses = await net.estimateMultiplePoses(img, 0.5, flipHorizontal, outputStride, maxPoseDetections)
+        console.log(poses)
+        return await poseVector(poses[0].keypoints)
+    }
+
+    // 姿势向量
+    function poseVector(poses) {
+        return new Promise(resolve => {
+            let box = []
+            poses.map((kp, i) => {
+                box = box.concat(Object.values(kp.position))
+                if (i === poses.length - 1) {
+                    resolve(box)
+                }
+            })
+        })
+
+    }
+
+    // 比较向量相似度
+    function compute(x, y) {
+        x = tf.tensor1d(x);
+        y = tf.tensor1d(y);
+        const p1 = tf.sqrt(x.mul(x).sum());
+        const p2 = tf.sqrt(y.mul(y).sum());
+        let p12 = x.mul(y).sum();
+        const score = p12.div(p1.mul(p2));
+        score.print();
+    }
+
+    init()
+
+
+</script>
+</body>
+</html>

@@ -7,6 +7,7 @@ async function app() {
 
     net = await mobilenet.load()
     console.log('Successfully Loaded haha')
+
     // 图片识别
     // const imgEl = document.getElementById('img')
     // const result = await net.classify(imgEl)
@@ -24,10 +25,6 @@ async function app() {
     document.getElementById('class-a').addEventListener('click', () => addExample(0))
     document.getElementById('class-b').addEventListener('click', () => addExample(1))
     document.getElementById('class-c').addEventListener('click', () => addExample(2))
-    document.getElementById('save').addEventListener('click', async () => {
-        console.log('save')
-        await mobilenet.save('downloads://net')
-    })
 
     while (true) {
         if (classifier.getNumClasses() > 0) {
@@ -41,7 +38,6 @@ async function app() {
         }
         await tf.nextFrame()
     }
-
 }
 
 async function setupWebcam() {

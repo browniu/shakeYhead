@@ -15,8 +15,8 @@ class ShakeY extends Component {
             displaySize: [224, 60],
             displaySub: [
                 {id: 'up', title: '基本动作', total: 0},
-                {id: 'left', title: '动作A', total: 0},
-                {id: 'right', title: '动作B', total: 0},
+                {id: 'right', title: '动作A', total: 0},
+                {id: 'left', title: '动作B', total: 0},
                 {id: 'down', title: '动作C', total: 0}
             ],
             modelAct: false,
@@ -31,7 +31,8 @@ class ShakeY extends Component {
             loadMethodSelect: false,
             saved: false,
             named: false,
-            acc: null
+            acc: null,
+            predictAccs: [0, 0, 0, 0]
         }
     }
 
@@ -50,7 +51,6 @@ class ShakeY extends Component {
                                     <video id={'webcam'} autoPlay playsInline muted width={this.state.displaySize[0]} height={this.state.displaySize[0]} />
                                 </div>
                             </div>
-                            <div className="title">监控视窗</div>
                         </div>
                     </div>
                     <div className="display-item display-sub">
@@ -58,15 +58,19 @@ class ShakeY extends Component {
                             {this.state.displaySub.map((item, index) => (
                                 <li className="display-sub-item" key={index}>
                                     <div className="display-inner" id={'display_' + item.id}>
-                                        <div className="view">
+                                        <div className="view" style={{display: 'none'}}>
                                             <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]} height={this.state.displaySize[1]} />
                                         </div>
                                         <div className="info">
                                             <div className="title" onClick={() => this.nameIt(index, item.title)}>{item.title}</div>
-                                            <div className="sub">Train: <span id={item.id + '-total'}>{item.total}</span>
+                                            <div className="sub">
+                                                {!this.state.modelAct &&
+                                                <span>Train: <i id={item.id + '-total'}>{item.total}</i></span>}
+
+                                                {this.state.modelAct &&
+                                                <span id={item.id + '_acc'}>Acc: {this.state.predictAccs[index]}</span>}
                                             </div>
                                         </div>
-
                                     </div>
                                 </li>
                             ))}
@@ -93,7 +97,7 @@ class ShakeY extends Component {
                             {this.state.displaySub.map((button, index) => (
                                 <span className={'button'} key={index}>
                                 <span style={{display: 'none'}} id={button.id} />
-                                <span onClick={() => this.capture(button.id, this.state.delay)}>{button.title + '捕捉'}</span>
+                                <span className={'control'} onClick={() => this.capture(button.id, this.state.delay)}>{button.title + '捕捉'}</span>
                             </span>
                             ))}
                         </div>
@@ -216,11 +220,9 @@ class ShakeY extends Component {
         const thumbDisplayed = {};
         const getLearningRate = () => 0.0001;
         const getBatchSizeFraction = () => 0.4;
-        const getEpochs = () => 30;
         const getDenseUnits = () => 50;
 
         const statusElement = document.getElementById('status');
-        const trainStatusElement = document.getElementById('train-status');
         const upButton = document.getElementById('up');
         const downButton = document.getElementById('down');
         const leftButton = document.getElementById('left');
@@ -344,59 +346,33 @@ class ShakeY extends Component {
             let acc = 0
             await model.fit(controllerDataset.xs, controllerDataset.ys, {
                 batchSize,
-                epochs: getEpochs(),
+                epochs: 30,
                 callbacks: {
                     onBatchEnd: async (batch, logs) => {
                         if (batch === 2) acc = ' (准确度:' + ((parseInt(logs.acc * 10000) / 10000).toFixed(4) - 0.0001) + '%)'
                     }
                 }
             });
-            console.log('训练结束')
             that.setState({trained: true, acc: acc})
-        }
-
-        // 事件监听
-        function listener() {
-            [upButton, downButton, leftButton, rightButton].map((button, index) => button.addEventListener(('click'), () => {
-                handler(index);
-                mouseDown = false
-            }))
-            document.getElementById('train').addEventListener('click', async () => {
-                await tf.nextFrame();
-                await tf.nextFrame();
-                isPredicting = false;
-                train();
-            });
-            document.getElementById('predict').addEventListener('click', () => startModel());
-
-            document.getElementById('save').addEventListener("click", () => saveModel())
-            document.getElementById('load').addEventListener("click", () => loadModel())
         }
 
         // 预测
         async function predict() {
             while (isPredicting) {
-                // Capture the frame from the webcam.
                 const img = await getImage();
-
-                // Make a prediction through mobilenet, getting the internal activation of
-                // the mobilenet model, i.e., "embeddings" of the input images.
                 const embeddings = truncatedMobileNet.predict(img);
-
-                // Make a prediction through our newly-trained model using the embeddings
-                // from mobilenet as input.
                 const predictions = model.predict(embeddings);
-
-                // Returns the index with the maximum probability. This number corresponds
-                // to the class the model thinks is the most probable given the input.
+                let accs = await predictions.as1D().data()
+                // uishow
+                that.setState({predictAccs: [String(accs[0]).slice(0, 5), String(accs[3]).slice(0, 5), String(accs[2]).slice(0, 5), String(accs[1]).slice(0, 5)]})
                 const predictedClass = predictions.as1D().argMax();
                 const classId = (await predictedClass.data())[0];
+
                 img.dispose();
 
                 document.body.setAttribute('data-active', CONTROLS[classId]);
                 await tf.nextFrame();
             }
-            // donePredicting();
         }
 
         // 启动模型
@@ -463,6 +439,24 @@ class ShakeY extends Component {
             that.setState({trained: true, displaySub: JSON.parse(localStorage.getItem('shakeYhead')).actions})
             isPredicting = true;
             model = await tf.loadLayersModel('indexeddb://shakeYhead')
+        }
+
+        // 事件监听
+        function listener() {
+            [upButton, downButton, leftButton, rightButton].map((button, index) => button.addEventListener(('click'), () => {
+                handler(index);
+                mouseDown = false
+            }))
+            document.getElementById('train').addEventListener('click', async () => {
+                await tf.nextFrame();
+                await tf.nextFrame();
+                isPredicting = false;
+                train();
+            });
+            document.getElementById('predict').addEventListener('click', () => startModel());
+
+            document.getElementById('save').addEventListener("click", () => saveModel())
+            document.getElementById('load').addEventListener("click", () => loadModel())
         }
 
         // 执行---------------------------------------------------------------------------------------------------------

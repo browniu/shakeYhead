@@ -18,7 +18,7 @@ $co6: #6ac3c0
 
 .display
   width: 100%
-  height: 250px
+  //height: 250px
 
   .display-item
     display: inline-block
@@ -41,18 +41,24 @@ $co6: #6ac3c0
       color: $co4
 
     .info
+      width: 100px
       display: inline-block
       font-size: 12px
       color: $co4
-      vertical-align: super
-      width: 60px
+
 
       .title
-        font-size: 14px
+        display: inline-block
+        font-size: 12px
+        margin-right: 5px
 
       .sub
+        display: inline-block
         font-size: 12px
         opacity: .7
+
+        span
+          margin-right: 3px
 
     .view
       background: $co3h
@@ -81,8 +87,8 @@ $co6: #6ac3c0
 
 
   .display-main
-    margin-right: 15px
     width: 65%
+    margin-right: 15px
 
     .display-inner
       width: 100%
@@ -123,25 +129,36 @@ $co6: #6ac3c0
   .display-sub
     width: calc(35% - 15px)
 
-    .display-inner
-      width: 100%
-
     ul
       position: relative
       height: 100%
 
     li
-      height: calc(250px / 4 - 8px)
       margin-bottom: 10px
 
-      &:last-child
-        margin-bottom: 0
-        position: absolute
-        bottom: 0
+      .display-inner
         width: 100%
+        padding: 15px 5px
+        box-sizing: border-box
 
       .view
         margin-right: 15px
+
+      .info
+        float: left
+        transform: scale(.8)
+        white-space: nowrap
+        vertical-align: bottom
+
+      .status
+        display: inline-block
+        height: 25px
+        width: calc(100% - 100px)
+        background: $co3h
+        float: left
+        transition: transform 100ms linear
+        transform: scaleX(1)
+        transform-origin: left
 
 .panel
   margin-top: 15px
@@ -196,6 +213,12 @@ $co6: #6ac3c0
       color: #f1f1f1cc
       width: calc(50% - 5px)
 
+      span
+        &.control
+          display: inline-block
+          height: 100%
+          width: 100%
+
       input
         margin-left: 5px
         vertical-align: inherit
@@ -216,8 +239,10 @@ $co6: #6ac3c0
     margin-top: 10px
     text-align: center
     border-radius: 3px
+
     &.hidden
       display: none
+
     &.disable
       display: none
 
