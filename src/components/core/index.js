@@ -8,9 +8,9 @@ class ShakeY extends Component {
         super(props);
         this.config = {
             rate: 30
-        }
-        this.isMobile = () => /Android|webOS|iPhone|iPod|BlackBerry|iPad/i.test(navigator.userAgent)
-        this.isWx = () => /MicroMessenger/i.test(navigator.userAgent)
+        };
+        this.isMobile = () => /Android|webOS|iPhone|iPod|BlackBerry|iPad/i.test(navigator.userAgent);
+        this.isWx = () => /MicroMessenger/i.test(navigator.userAgent);
         this.state = {
             displaySize: [224, 60],
             displaySub: [
@@ -130,16 +130,16 @@ class ShakeY extends Component {
     }
 
     capture(id, isDelay) {
-        let delay = 0
+        let delay = 0;
         if (isDelay) {
-            delay = 3
+            delay = 3;
             this.countdown(delay + 1, 'countDown')
         }
         setTimeout(() => {
-            let rate = 10
-            let during = 50
+            let rate = 10;
+            let during = 50;
             if (this.state.rate) {
-                rate = this.config.rate
+                rate = this.config.rate;
                 during = 20
             }
             this.autoClick(id, rate, delay, during)
@@ -148,21 +148,21 @@ class ShakeY extends Component {
 
     countdown(count, output) {
         let timer = setInterval(() => {
-            count--
-            this.setState({[output]: count})
+            count--;
+            this.setState({[output]: count});
             if (count <= 0) clearInterval(timer)
         }, 1000)
     }
 
     autoClick(id, rate, delay, during) {
-        this.setState({capturing: true})
+        this.setState({capturing: true});
         setTimeout(() => {
             let i = 0;
             let timer = setInterval(() => {
                 i++;
                 document.getElementById(id).click();
                 if (i >= rate) {
-                    clearInterval(timer)
+                    clearInterval(timer);
                     this.setState({capturing: false})
                 }
             }, during)
@@ -171,18 +171,18 @@ class ShakeY extends Component {
 
     nameIt(index, name) {
 
-        console.log(index, name)
-        let newName = prompt("自定义动作名称", name)
-        let list = this.state.displaySub
-        list[index].title = newName
+        console.log(index, name);
+        let newName = prompt("自定义动作名称", name);
+        let list = this.state.displaySub;
+        list[index].title = newName;
         this.setState({displaySub: list, named: true})
     }
 
     componentDidMount() {
         // 初始化
-        lsJudge(this)
+        lsJudge(this);
 
-        if (this.isMobile()) this.setState({rate: false})
+        if (this.isMobile()) this.setState({rate: false});
 
         // 构造器--------------------------------------------------------------------------------------------------------
         class ControllerDataset {
@@ -212,7 +212,7 @@ class ShakeY extends Component {
         }
 
         // 常量---------------------------------------------------------------------------------------------------------
-        const that = this
+        const that = this;
         const CONTROLS = ['up', 'down', 'left', 'right'];
         const NUM_CLASSES = 4;
         let totals = [0, 0, 0, 0];
@@ -237,14 +237,14 @@ class ShakeY extends Component {
         let truncatedMobileNet;
         let isPredicting = false;
         // 全局暴露
-        window.totals = totals
+        window.totals = totals;
 
         // 方法---------------------------------------------------------------------------------------------------------
         // 判断存档
         function lsJudge(that) {
-            let result = localStorage.getItem('shakeYhead')
+            let result = localStorage.getItem('shakeYhead');
             if (result) {
-                that.setState({loadModelAble: true})
+                that.setState({loadModelAble: true});
                 console.log(JSON.parse(result).actions)
             } else that.setState({loadMethodSelect: true, loadModel: false})
         }
@@ -306,8 +306,8 @@ class ShakeY extends Component {
 
         // 训练模型
         async function train() {
-            if (controllerDataset.xs == null || that.state.trained) return
-            document.getElementById('train_info').innerText = '训练中...'
+            if (controllerDataset.xs == null || that.state.trained) return;
+            document.getElementById('train_info').innerText = '训练中...';
             // 创建一个包含两个全链接层的模型
             model = tf.sequential({
                 layers: [
@@ -343,7 +343,7 @@ class ShakeY extends Component {
                     `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
             }
             // 训练模型
-            let acc = 0
+            let acc = 0;
             await model.fit(controllerDataset.xs, controllerDataset.ys, {
                 batchSize,
                 epochs: 30,
@@ -362,9 +362,9 @@ class ShakeY extends Component {
                 const img = await getImage();
                 const embeddings = truncatedMobileNet.predict(img);
                 const predictions = model.predict(embeddings);
-                let accs = await predictions.as1D().data()
+                let accs = await predictions.as1D().data();
                 // uishow
-                that.setState({predictAccs: [String(accs[0]).slice(0, 5), String(accs[3]).slice(0, 5), String(accs[2]).slice(0, 5), String(accs[1]).slice(0, 5)]})
+                that.setState({predictAccs: [String(accs[0]).slice(0, 5), String(accs[3]).slice(0, 5), String(accs[2]).slice(0, 5), String(accs[1]).slice(0, 5)]});
                 const predictedClass = predictions.as1D().argMax();
                 const classId = (await predictedClass.data())[0];
 
@@ -409,22 +409,22 @@ class ShakeY extends Component {
         // 保存模型
         async function saveModel() {
             if (that.isWx()) {
-                alert('微信浏览器无法储存模型数据')
+                alert('微信浏览器无法储存模型数据');
                 return
             }
             if (!that.state.named) {
-                alert('保存模型前至少为一个动作自定义命名')
+                alert('保存模型前至少为一个动作自定义命名');
                 return
             }
-            let saveResult = await model.save('indexeddb://shakeYhead')
-            console.log('保存结果', saveResult)
+            let saveResult = await model.save('indexeddb://shakeYhead');
+            console.log('保存结果', saveResult);
             if (saveResult.modelArtifactsInfo.dateSaved) {
-                that.setState({saved: true})
-                let actions = that.state.displaySub
+                that.setState({saved: true});
+                let actions = that.state.displaySub;
                 actions.map((e, index) => {
                     e.total = window.totals[index]
-                })
-                console.log(actions)
+                });
+                console.log(actions);
                 localStorage.setItem('shakeYhead', JSON.stringify({
                     actions: actions,
                     date: saveResult.modelArtifactsInfo.dateSaved
@@ -435,8 +435,8 @@ class ShakeY extends Component {
 
         // 载入模型
         async function loadModel() {
-            console.log('载入固化模型')
-            that.setState({trained: true, displaySub: JSON.parse(localStorage.getItem('shakeYhead')).actions})
+            console.log('载入固化模型');
+            that.setState({trained: true, displaySub: JSON.parse(localStorage.getItem('shakeYhead')).actions});
             isPredicting = true;
             model = await tf.loadLayersModel('indexeddb://shakeYhead')
         }
@@ -446,7 +446,7 @@ class ShakeY extends Component {
             [upButton, downButton, leftButton, rightButton].map((button, index) => button.addEventListener(('click'), () => {
                 handler(index);
                 mouseDown = false
-            }))
+            }));
             document.getElementById('train').addEventListener('click', async () => {
                 await tf.nextFrame();
                 await tf.nextFrame();
@@ -455,7 +455,7 @@ class ShakeY extends Component {
             });
             document.getElementById('predict').addEventListener('click', () => startModel());
 
-            document.getElementById('save').addEventListener("click", () => saveModel())
+            document.getElementById('save').addEventListener("click", () => saveModel());
             document.getElementById('load').addEventListener("click", () => loadModel())
         }
 
@@ -469,10 +469,10 @@ class ShakeY extends Component {
             // Draw the preview thumbnail.
             drawThumb(img, label);
             img.dispose();
-        })
+        });
 
         // 事件监听
-        listener()
+        listener();
 
         // 初始化
         init()

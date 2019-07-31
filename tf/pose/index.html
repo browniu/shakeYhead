@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
 
@@ -12,14 +13,56 @@
 
 <style>
     img {
-        /*display: none;*/
+        display: none;
+    }
+
+    video {
+        -moz-transform: scaleX(-1);
+        -o-transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+
+    canvas {
+        /*position: absolute;*/
+        background: #f1f1f1;
+        -moz-transform: scaleX(-1);
+        -o-transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+
+
+    .console {
+        font-size: 36px;
+    }
+
+    .bar {
+        height: 20px;
+        width: 100%;
+        background: brown;
+        transform: scaleX(0.3);
+        transform-origin: left;
+        transition: .1s linear;
     }
 </style>
 <body>
-<img id='cat' src='pose.jpg ' />
-<img id='cat2' src='pose2.jpeg ' />
-<img id='cat3' src='pose3.jpeg ' />
-<img id='cat4' src='pose4.jpg ' />
+<video autoplay playsinline muted src="https://ali.image.hellorf.com/images/21bed3696cddb114cee395427211334c.mp4"
+       id="video" height="224" width="224"></video>
+<canvas id="cvsDraw"></canvas>
+<button onclick="start()">start</button>
+<button onclick="stop()">stop</button>
+<div class="console">
+    <div class="bar" id="bar"></div>
+    <div class="content">
+        相似度：<span id="log">0</span>
+    </div>
+</div>
+<canvas id="cvs"></canvas>
+<img id='cat' src='pose6.jpeg '/>
+<img id='cat2' src='pose2.jpeg '/>
+<img id='cat3' src='pose3.jpeg '/>
+<img id='cat4' src='pose4.jpg '/>
 
 <script>
 
@@ -27,55 +70,126 @@
     const flipHorizontal = false;
     const outputStride = 16;
     const maxPoseDetections = 2;
+    let net;
+    let timer;
+    let poseVec1;
+
     const imageElement = document.getElementById('cat');
     const imageElement2 = document.getElementById('cat2');
     const imageElement3 = document.getElementById('cat3');
     const imageElement4 = document.getElementById('cat4');
+    const videoEle = document.getElementById('video');
+
+    const cvs = document.getElementById('cvs');
+    const cvsDraw = document.getElementById('cvsDraw');
+
+    const logEle = document.getElementById('log');
+    const logBar = document.getElementById('bar');
 
     async function init() {
-        // 获取姿势数据
-        let net = await posenet.load()
-        let poseVec1 = await getPoseData(net, imageElement)
-        let poseVec2 = await getPoseData(net, imageElement2)
-        let poseVec3 = await getPoseData(net, imageElement3)
-        let poseVec4 = await getPoseData(net, imageElement4)
-        console.log(poseVec1, poseVec2, poseVec3, poseVec4)
-        compute(poseVec1, poseVec1)
-        compute(poseVec1, poseVec2)
-        compute(poseVec1, poseVec3)
-        compute(poseVec1, poseVec4)
+
+        net = await posenet.load();
+
+        let poseData1 = await getPoseData(imageElement);
+        let poseData2 = await getPoseData(imageElement2);
+        let poseData3 = await getPoseData(imageElement3);
+        let poseData4 = await getPoseData(imageElement4);
+
+        draw(cvs, imageElement, poseData1, true);
+
+        poseVec1 = await poseVector(poseData1);
+        let poseVec2 = await poseVector(poseData2);
+        let poseVec3 = await poseVector(poseData3);
+        let poseVec4 = await poseVector(poseData4);
+
+        await compute(poseVec1, poseVec1);
+        await compute(poseVec1, poseVec2);
+        await compute(poseVec1, poseVec3);
+        await compute(poseVec1, poseVec4);
+
+        await setupWebcam(videoEle);
     }
 
     // 解析姿势
-    async function getPoseData(net, img) {
-        let poses = await net.estimateMultiplePoses(img, 0.5, flipHorizontal, outputStride, maxPoseDetections)
-        console.log(poses)
-        return await poseVector(poses[0].keypoints)
+    async function getPoseData(img) {
+        let poses = await net.estimateMultiplePoses(img, 0.5, flipHorizontal, outputStride, maxPoseDetections);
+        if (poses[0]) return poses[0].keypoints
     }
 
     // 姿势向量
     function poseVector(poses) {
         return new Promise(resolve => {
-            let box = []
+            let box = [];
             poses.map((kp, i) => {
-                box = box.concat(Object.values(kp.position))
+                box = box.concat(Object.values(kp.position));
                 if (i === poses.length - 1) {
                     resolve(box)
                 }
             })
         })
-
     }
 
-    // 比较向量相似度
-    function compute(x, y) {
+    // 相似度
+    async function compute(x, y) {
         x = tf.tensor1d(x);
         y = tf.tensor1d(y);
         const p1 = tf.sqrt(x.mul(x).sum());
         const p2 = tf.sqrt(y.mul(y).sum());
         let p12 = x.mul(y).sum();
-        const score = p12.div(p1.mul(p2));
-        score.print();
+        let score = p12.div(p1.mul(p2));
+        score = ((await score.data())[0] - 0.9) * 10;
+        logEle.innerText = score;
+        logBar.style.transform = 'scaleX(' + score + ')';
+        if (score > 0.85) {
+            stop();
+            logBar.style.background = 'green';
+        } else logBar.style.background = 'brown';
+    }
+
+    // 画图
+    function draw(cvs, img, poseData, proto) {
+        cvs.height = img.height;
+        cvs.width = img.width;
+        const ctx = cvs.getContext('2d');
+        ctx.fillRect(0, 0, cvs.height, cvs.width);
+        ctx.fillStyle = "green";
+        if (proto) ctx.drawImage(img, 0, 0);
+        poseData.map(pose => {
+            ctx.fillRect(pose.position.x, pose.position.y, 5, 5);
+            ctx.fill();
+        });
+    }
+
+    // 驱动摄像头
+    async function setupWebcam(ele) {
+        return new Promise((resolve, reject) => {
+            const navigatorAny = navigator;
+            navigator.getUserMedia = navigator.getUserMedia || navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia || navigatorAny.msGetUserMedia
+            if (navigator.getUserMedia) {
+                navigator.getUserMedia({video: true}, stream => {
+                    ele.srcObject = stream;
+                    ele.addEventListener('loadeddata', () => resolve(), false)
+                }, error => reject(error))
+            } else reject('初始化失败')
+        })
+    }
+
+    // 启动动态捕获
+    function start() {
+        setTimeout(async () => {
+            timer = setInterval(async () => {
+                const poseDataV = await getPoseData(videoEle);
+                // console.log(poseV);
+                draw(cvsDraw, videoEle, poseDataV);
+                let poseVecV = await poseVector(poseDataV);
+                await compute(poseVec1, poseVecV)
+            }, 60)
+        }, 100);
+    }
+
+    // 停止动态捕获
+    function stop() {
+        clearInterval(timer)
     }
 
     init()

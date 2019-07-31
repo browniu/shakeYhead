@@ -3,17 +3,9 @@
 <head>
     <title>TensorFlow.js Tutorial</title>
 
-    <!-- Import TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
-    <!-- Import tfjs-vis -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
-    <!-- Import model-->
+    <script src="https://unpkg.com/@tensorflow/tfjs"></script>
     <script src="https://unpkg.com/@tensorflow-models/mobilenet"></script>
-    <script src="https://unpkg.com/@tensorflow-models/knn-classifier"></script>
 
-
-    <!-- Import the main script file -->
-<!--    <script src="migrateModel.js" type="module"></script>-->
 </head>
 
 <body>
@@ -27,5 +19,6 @@
     <button id="class-c">c</button>
 </div>
 <!-- Load index.js after the content of the page -->
+<script src="migrateModel.js"></script>
 </body>
 </html>
