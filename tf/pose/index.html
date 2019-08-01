@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
 
@@ -17,6 +16,7 @@
     }
 
     video {
+        opacity: .2;
         -moz-transform: scaleX(-1);
         -o-transform: scaleX(-1);
         -webkit-transform: scaleX(-1);
@@ -47,8 +47,7 @@
     }
 </style>
 <body>
-<video autoplay playsinline muted src="https://ali.image.hellorf.com/images/21bed3696cddb114cee395427211334c.mp4"
-       id="video" height="224" width="224"></video>
+<video autoplay playsinline muted src="https://ali.image.hellorf.com/images/21bed3696cddb114cee395427211334c.mp4" id="video" height="224" width="224"></video>
 <canvas id="cvsDraw"></canvas>
 <button onclick="start()">start</button>
 <button onclick="stop()">stop</button>
@@ -59,10 +58,10 @@
     </div>
 </div>
 <canvas id="cvs"></canvas>
-<img id='cat' src='pose6.jpeg '/>
-<img id='cat2' src='pose2.jpeg '/>
-<img id='cat3' src='pose3.jpeg '/>
-<img id='cat4' src='pose4.jpg '/>
+<img id='cat' src='pose6.jpeg ' height="224" width="224" />
+<img id='cat2' src='pose2.jpeg ' />
+<img id='cat3' src='pose3.jpeg ' />
+<img id='cat4' src='pose4.jpg ' />
 
 <script>
 

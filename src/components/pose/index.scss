@@ -1,0 +1,156 @@
+$co1: #f66;
+$co1h: #b9465c;
+$co2: #4fc08d;
+$co2h: #42b983;
+$co3: #486491;
+$co3h: #273849;
+$co3l: #1c90f3;
+
+.pose {
+  background: #f1f1f1;
+  max-width: 500px;
+  padding: 15px;
+  box-sizing: border-box;
+
+  .template {
+
+    img {
+      display: none;
+    }
+
+    canvas {
+      //transform: scaleX(-1);
+      vertical-align: bottom;
+      width: 100%;
+      height: auto;
+    }
+
+    .meter {
+      margin: 3px 0;
+      width: 100%;
+      height: 20px;
+      line-height: 20px;
+      position: relative;
+      padding: 0 5px;
+      box-sizing: border-box;
+      background: #ddd;
+
+      .content {
+        position: relative;
+        z-index: 1;
+        color: #333;
+        font-size: 12px;
+        transform: scale(.7);
+        transform-origin: right;
+        text-align: right;
+      }
+
+      .status {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        transition: .1s linear;
+        background: $co2;
+        transform-origin: left;
+      }
+
+      .status-grides {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+
+        i {
+          width: 1px;
+          height: 100%;
+          display: inline-block;
+          position: absolute;
+          left: 0;
+          top: 0;
+          background: #f1f1f1;
+          opacity: .3;
+        }
+      }
+    }
+  }
+
+  .stream {
+    .stream-view {
+      background: linear-gradient(to left, #000, $co3h, #000);
+      text-align: center;
+
+      video {
+        position: absolute;
+        pointer-events: none;
+        transform: scaleX(-1);
+        visibility: hidden;
+        width: 224px;
+        height: 224px;
+
+      }
+
+      canvas {
+        transform: scaleX(-1);
+        vertical-align: bottom;
+        height: 120px;
+        width: 120px;
+        background: $co3h;
+      }
+    }
+
+    .stream-panel {
+      .console {
+        padding: 8px 5px;
+        transition: .3s ease;
+        font-size: 12px;
+        background: #ddd;
+        color: $co1h;
+        margin: 3px 0;
+
+        .info {
+          opacity: 0;
+
+          &.down {
+            color: $co2h;
+          }
+
+          &.act {
+            opacity: 1;
+          }
+        }
+
+      }
+
+      .control {
+        margin-top: 8px;
+
+        button {
+          margin-right: 12px;
+          padding: 3px 8px;
+          background: #ccc;
+          color: #fff;
+          border: 0;
+          font-size: 12px;
+          border-radius: 3px;
+          outline: none;
+          cursor: pointer;
+
+          &:hover {
+            background: #bdbdbd;
+          }
+
+          &:active {
+            background: #bababa;
+          }
+        }
+      }
+
+
+    }
+
+  }
+
+}

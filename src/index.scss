@@ -1,0 +1,73 @@
+.App {
+  .main-panel {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    .title {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .menu {
+
+
+      li {
+        background: #f1f1f1;
+        margin-bottom: 10px;
+        width: 200px;
+        text-align: center;
+        padding: 10px 20px;
+        color: #666;
+        border-radius: 3px;
+        cursor: pointer;
+
+        &:hover {
+          background: #eee;
+        }
+
+        &:active {
+          background: #ccc;
+        }
+      }
+    }
+  }
+
+  .main-display {
+    .back {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      height: 20px;
+      width: 20px;
+      cursor: pointer;
+      transform: rotate(45deg);
+      transition: .3s ease;
+
+      &:hover {
+        transform: rotate(135deg);
+      }
+
+      &:before, &:after {
+        content: '';
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 50%;
+        height: 100%;
+        width: 1px;
+        background: #666;
+        transform: translateX(-50%);
+      }
+
+      &:after {
+        top: 50%;
+        left: 0;
+        height: 1px;
+        width: 100%;
+        transform: translateY(-50%);
+      }
+    }
+  }
+}

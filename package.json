@@ -2,8 +2,9 @@
   "name": "shakeyhead",
   "version": "0.1.0",
   "private": true,
-  "homepage":".",
+  "homepage": ".",
   "dependencies": {
+    "@tensorflow-models/posenet": "^2.1.3",
     "@tensorflow/tfjs": "^1.2.5",
     "node-sass": "^4.12.0",
     "react": "^16.8.6",
