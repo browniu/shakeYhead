@@ -13,6 +13,10 @@ $co3l: #1c90f3;
   box-sizing: border-box;
 
   .template {
+    text-align: center;
+    overflow: hidden;
+    width: 100%;
+    max-height: 500px;
 
     img {
       display: none;
@@ -23,6 +27,12 @@ $co3l: #1c90f3;
       vertical-align: bottom;
       width: 100%;
       height: auto;
+      transition: .3s ease;
+
+      &.tolong {
+        height: 300px;
+        width: auto;
+      }
     }
 
     .meter {
@@ -129,8 +139,8 @@ $co3l: #1c90f3;
 
         button {
           margin-right: 12px;
-          padding: 3px 8px;
-          background: #ccc;
+          padding: 3px 10px;
+          background: $co2;
           color: #fff;
           border: 0;
           font-size: 12px;
@@ -139,11 +149,19 @@ $co3l: #1c90f3;
           cursor: pointer;
 
           &:hover {
-            background: #bdbdbd;
+            background: $co2h;
           }
 
           &:active {
-            background: #bababa;
+            background: #2a825a;
+          }
+
+          &.act {
+            opacity: .6;
+          }
+
+          input {
+            display: none;
           }
         }
       }

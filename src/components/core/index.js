@@ -46,9 +46,11 @@ class ShakeY extends Component {
                                 <div className="info" id={'status'}>构建神经网络</div>
                                 <div className="info" id={'no-webcam'}>检查输入设备</div>
                                 {this.state.delay &&
-                                <div className={['info', 'countDown', this.state.countDown ? 'act' : ''].join(' ')}>{this.state.countDown}</div>}
+                                <div
+                                    className={['info', 'countDown', this.state.countDown ? 'act' : ''].join(' ')}>{this.state.countDown}</div>}
                                 <div className="view-content">
-                                    <video id={'webcam'} autoPlay playsInline muted width={this.state.displaySize[0]} height={this.state.displaySize[0]} />
+                                    <video id={'webcam'} autoPlay playsInline muted width={this.state.displaySize[0]}
+                                           height={this.state.displaySize[0]}/>
                                 </div>
                             </div>
                         </div>
@@ -59,10 +61,12 @@ class ShakeY extends Component {
                                 <li className="display-sub-item" key={index}>
                                     <div className="display-inner" id={'display_' + item.id}>
                                         <div className="view" style={{display: 'none'}}>
-                                            <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]} height={this.state.displaySize[1]} />
+                                            <canvas id={item.id + '-thumb'} width={this.state.displaySize[1]}
+                                                    height={this.state.displaySize[1]}/>
                                         </div>
                                         <div className="info">
-                                            <div className="title" onClick={() => this.nameIt(index, item.title)}>{item.title}</div>
+                                            <div className="title"
+                                                 onClick={() => this.nameIt(index, item.title)}>{item.title}</div>
                                             <div className="sub">
                                                 {!this.state.modelAct &&
                                                 <span>Train: <i id={item.id + '-total'}>{item.total}</i></span>}
@@ -83,11 +87,16 @@ class ShakeY extends Component {
                     <div className={['function-group train', this.state.loadModel ? '' : 'act'].join(' ')}>
                         <div className="check-groups">
                         <span className="check">
-                            <input id={'check_delay'} value={this.state.delay} type="checkbox" onChange={() => {this.setState({delay: !this.state.delay})}} />
+                            <input id={'check_delay'} value={this.state.delay} type="checkbox" onChange={() => {
+                                this.setState({delay: !this.state.delay})
+                            }}/>
                             <label htmlFor="check_delay">延时捕捉</label>
                         </span>
                             <span className="check">
-                            <input id={'check_rate'} value={this.state.rate} checked={this.state.rate} type="checkbox" onChange={() => {this.setState({rate: !this.state.rate})}} />
+                            <input id={'check_rate'} value={this.state.rate} checked={this.state.rate} type="checkbox"
+                                   onChange={() => {
+                                       this.setState({rate: !this.state.rate})
+                                   }}/>
                             <label htmlFor="check_rate">高频捕捉</label>
                         </span>
                         </div>
@@ -96,8 +105,9 @@ class ShakeY extends Component {
                         }}>
                             {this.state.displaySub.map((button, index) => (
                                 <span className={'button'} key={index}>
-                                <span style={{display: 'none'}} id={button.id} />
-                                <span className={'control'} onClick={() => this.capture(button.id, this.state.delay)}>{button.title + '捕捉'}</span>
+                                <span style={{display: 'none'}} id={button.id}/>
+                                <span className={'control'}
+                                      onClick={() => this.capture(button.id, this.state.delay)}>{button.title + '捕捉'}</span>
                             </span>
                             ))}
                         </div>
@@ -108,7 +118,9 @@ class ShakeY extends Component {
                             </span>
                         </div>
 
-                        <div className={['panel-button', this.state.trained && this.state.modelAct ? '' : 'disable', this.state.saved ? 'act' : ''].join(' ')} id={'save'}>{this.state.saved ? '保存成功' : '保存模型'}</div>
+                        <div
+                            className={['panel-button', this.state.trained && this.state.modelAct ? '' : 'disable', this.state.saved ? 'act' : ''].join(' ')}
+                            id={'save'}>{this.state.saved ? '保存成功' : '保存模型'}</div>
                     </div>
                     <div className={['function-group select', this.state.loadMethodSelect ? '' : 'act'].join(' ')}>
                         <div className="panel-button" onClick={() => this.setState({
@@ -116,9 +128,14 @@ class ShakeY extends Component {
                             loadMethodSelect: true
                         })}>新建模型
                         </div>
-                        <div className="panel-button" style={{display: this.state.loadModel && this.state.loadModelAble ? 'inline-block' : 'none'}} id={'load'} onClick={() => this.setState({loadMethodSelect: true})}>载入模型</div>
+                        <div className="panel-button"
+                             style={{display: this.state.loadModel && this.state.loadModelAble ? 'inline-block' : 'none'}}
+                             id={'load'} onClick={() => this.setState({loadMethodSelect: true})}>载入模型
+                        </div>
                     </div>
-                    <div className={['panel-button', this.state.modelAct ? 'act' : '', this.state.trained ? '' : 'disable'].join(' ')} id={'predict'} onClick={() => {
+                    <div
+                        className={['panel-button', this.state.modelAct ? 'act' : '', this.state.trained ? '' : 'disable'].join(' ')}
+                        id={'predict'} onClick={() => {
                         if (this.state.trained) this.setState({modelAct: true})
                     }}>
                         <span>启动神经网络</span>
@@ -421,9 +438,7 @@ class ShakeY extends Component {
             if (saveResult.modelArtifactsInfo.dateSaved) {
                 that.setState({saved: true});
                 let actions = that.state.displaySub;
-                actions.map((e, index) => {
-                    e.total = window.totals[index]
-                });
+                actions.map((e, index) => e.total = window.totals[index]);
                 console.log(actions);
                 localStorage.setItem('shakeYhead', JSON.stringify({
                     actions: actions,
