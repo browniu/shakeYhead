@@ -88,10 +88,22 @@ $co3l: #1c90f3;
   }
 
   .stream {
+    .stream-static{
+      text-align: center;
+      width: 100%;
+      overflow: hidden;
+      display: none;
+      &.act{
+        display: block;
+      }
+    }
     .stream-view {
       background: linear-gradient(to left, #000, $co3h, #000);
       text-align: center;
-
+      display: none;
+      &.act{
+        display: block;
+      }
       video {
         position: absolute;
         pointer-events: none;
