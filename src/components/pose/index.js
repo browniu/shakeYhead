@@ -107,7 +107,7 @@ class Pose extends Component {
     // 流媒体初始化
     async streamInit() {
         // 摄像初始化
-        this.webcamSetpu();
+        this.webcamSetup();
     }
 
     // 解析姿势
@@ -198,7 +198,7 @@ class Pose extends Component {
     }
 
     // 摄像驱动
-    webcamSetpu() {
+    webcamSetup() {
         const element = document.getElementById('webcam');
         return new Promise((resolve, reject) => {
             const navigatorAny = navigator;

@@ -16,254 +16,254 @@ $co6: #6ac3c0
   padding: 15px
   box-sizing: border-box
 
-.display
-  width: 100%
-  //height: 250px
+  .display
+    width: 100%
+    //height: 250px
 
-  .display-item
-    display: inline-block
-    vertical-align: top
-    height: 100%
-
-  .display-inner
-    display: inline-block
-    box-sizing: border-box
-    background: $co3
-    text-align: left
-    vertical-align: top
-    padding: 5px 10px
-    border-radius: 2px
-    transition: .3s ease
-
-    & > .title
-      text-align: center
-      font-size: 12px
-      color: $co4
-
-    .info
-      width: 100px
+    .display-item
       display: inline-block
-      font-size: 12px
-      color: $co4
-
-
-      .title
-        display: inline-block
-        font-size: 12px
-        margin-right: 5px
-
-      .sub
-        display: inline-block
-        font-size: 12px
-        opacity: .7
-
-        span
-          margin-right: 3px
-
-    .view
-      background: $co3h
-      display: inline-block
-
-      .info
-        position: absolute
-        left: 50%
-        top: 45%
-        transform: translate(-50%, -50%)
-        font-size: 18px
-        width: 100%
-
-        &.countDown
-          font-size: 100px
-          font-weight: bold
-          display: none
-
-          &.act
-            display: inline-block
-
-    canvas
-      vertical-align: bottom
-      box-sizing: border-box
-      display: none
-
-
-  .display-main
-    width: 65%
-    margin-right: 15px
+      vertical-align: top
+      height: 100%
 
     .display-inner
-      width: 100%
-      height: 100%
-      position: relative
-      text-align: center
+      display: inline-block
+      box-sizing: border-box
+      background: $co3
+      text-align: left
+      vertical-align: top
+      padding: 5px 10px
+      border-radius: 2px
+      transition: .3s ease
 
-      .title
-        position: absolute
-        left: 50%
-        transform: translateX(-50%)
+      & > .title
+        text-align: center
+        font-size: 12px
+        color: $co4
+
+      .info
+        width: 100px
+        display: inline-block
+        font-size: 12px
+        color: $co4
+
+
+        .title
+          display: inline-block
+          font-size: 12px
+          margin-right: 5px
+
+        .sub
+          display: inline-block
+          font-size: 12px
+          opacity: .7
+
+          span
+            margin-right: 3px
 
       .view
+        background: $co3h
         display: inline-block
-        height: calc(100% - 30px)
-        width: 100%
-        overflow: hidden
 
-        .view-content
-          background: $co3h
+        .info
+          position: absolute
+          left: 50%
+          top: 45%
+          transform: translate(-50%, -50%)
+          font-size: 18px
+          width: 100%
 
-      #no-webcam
+          &.countDown
+            font-size: 100px
+            font-weight: bold
+            display: none
+
+            &.act
+              display: inline-block
+
+      canvas
+        vertical-align: bottom
+        box-sizing: border-box
         display: none
 
-      video
-        height: 100%
-        width: auto
-        display: inline-block
-        margin: 0
-        padding: 0
-        vertical-align: bottom
-        transform: scaleX(-1)
-        mix-blend-mode: lighten
-        opacity: .2
-        filter: blur(1px)
 
-
-  .display-sub
-    width: calc(35% - 15px)
-
-    ul
-      position: relative
-      height: 100%
-
-    li
-      margin-bottom: 10px
+    .display-main
+      width: 65%
+      margin-right: 15px
 
       .display-inner
         width: 100%
-        padding: 15px 5px
-        box-sizing: border-box
+        height: 100%
+        position: relative
+        text-align: center
 
-      .view
-        margin-right: 15px
+        .title
+          position: absolute
+          left: 50%
+          transform: translateX(-50%)
 
-      .info
-        float: left
-        transform: scale(.8)
-        white-space: nowrap
-        vertical-align: bottom
-
-      .status
-        display: inline-block
-        height: 25px
-        width: calc(100% - 100px)
-        background: $co3h
-        float: left
-        transition: transform 100ms linear
-        transform: scaleX(1)
-        transform-origin: left
-
-.panel
-  margin-top: 15px
-  background: $co4
-  padding: 15px
-  border-radius: 3px
-  color: $co4
-  box-sizing: border-box
-  width: 100%
-  display: none
-  transition: .3s ease
-
-  .function-group
-    display: none
-
-    &.act
-      display: block
-
-  &.disable
-    touch-action: none
-    pointer-events: none
-    opacity: .8
-
-  .check-groups
-    margin-bottom: 15px
-
-    .check
-      background: $co4h
-      padding: 0 10px
-      border-radius: 3px
-      margin-right: 10px
-
-      &:last-child
-        margin-right: 0
-
-      label
-        font-size: 12px
-        margin-left: 5px
-
-  .panel-groups
-
-    .button
-      cursor: pointer
-      display: inline-block
-      background: $co3
-      margin-right: 10px
-      margin-bottom: 10px
-      padding: 5px 0px
-      border-radius: 3px
-      font-size: 12px
-      text-align: center
-      color: #f1f1f1cc
-      width: calc(50% - 5px)
-
-      span
-        &.control
+        .view
           display: inline-block
-          height: 100%
+          height: calc(100% - 30px)
           width: 100%
+          overflow: hidden
 
-      input
-        margin-left: 5px
-        vertical-align: inherit
+          .view-content
+            background: $co3h
 
-      &:active
-        background: $co3h
-
-      &:nth-child(even)
-        margin-right: 0
-
-  .panel-button
-    box-sizing: border-box
-    cursor: pointer
-    display: inline-block
-    background: $co5
-    padding: 15px 0
-    width: 100%
-    margin-top: 10px
-    text-align: center
-    border-radius: 3px
-
-    &.hidden
-      display: none
-
-    &.disable
-      display: none
-
-    span
-      display: none
-
-      &:first-child
-        display: inline-block
-
-    &.act
-      background: $co5h
-
-      span
-        &:first-child
+        #no-webcam
           display: none
 
+        video
+          height: 100%
+          width: auto
+          display: inline-block
+          margin: 0
+          padding: 0
+          vertical-align: bottom
+          transform: scaleX(-1)
+          mix-blend-mode: lighten
+          opacity: .2
+          filter: blur(1px)
+
+
+    .display-sub
+      width: calc(35% - 15px)
+
+      ul
+        position: relative
+        height: 100%
+
+      li
+        margin-bottom: 10px
+
+        .display-inner
+          width: 100%
+          padding: 15px 5px
+          box-sizing: border-box
+
+        .view
+          margin-right: 15px
+
+        .info
+          float: left
+          transform: scale(.8)
+          white-space: nowrap
+          vertical-align: bottom
+
+        .status
+          display: inline-block
+          height: 25px
+          width: calc(100% - 100px)
+          background: $co3h
+          float: left
+          transition: transform 100ms linear
+          transform: scaleX(1)
+          transform-origin: left
+
+  .panel
+    margin-top: 15px
+    background: $co4
+    padding: 15px
+    border-radius: 3px
+    color: $co4
+    box-sizing: border-box
+    width: 100%
+    display: none
+    transition: .3s ease
+
+    .function-group
+      display: none
+
+      &.act
+        display: block
+
+    &.disable
+      touch-action: none
+      pointer-events: none
+      opacity: .8
+
+    .check-groups
+      margin-bottom: 15px
+
+      .check
+        background: $co4h
+        padding: 0 10px
+        border-radius: 3px
+        margin-right: 10px
+
         &:last-child
+          margin-right: 0
+
+        label
+          font-size: 12px
+          margin-left: 5px
+
+    .panel-groups
+
+      .button
+        cursor: pointer
+        display: inline-block
+        background: $co3
+        margin-right: 10px
+        margin-bottom: 10px
+        padding: 5px 0px
+        border-radius: 3px
+        font-size: 12px
+        text-align: center
+        color: #f1f1f1cc
+        width: calc(50% - 5px)
+
+        span
+          &.control
+            display: inline-block
+            height: 100%
+            width: 100%
+
+        input
+          margin-left: 5px
+          vertical-align: inherit
+
+        &:active
+          background: $co3h
+
+        &:nth-child(even)
+          margin-right: 0
+
+    .panel-button
+      box-sizing: border-box
+      cursor: pointer
+      display: inline-block
+      background: $co5
+      padding: 15px 0
+      width: 100%
+      margin-top: 10px
+      text-align: center
+      border-radius: 3px
+
+      &.hidden
+        display: none
+
+      &.disable
+        display: none
+
+      span
+        display: none
+
+        &:first-child
           display: inline-block
 
-    &:active
-      background: $co5h
+      &.act
+        background: $co5h
+
+        span
+          &:first-child
+            display: none
+
+          &:last-child
+            display: inline-block
+
+      &:active
+        background: $co5h
 
 
 [data-active="up"] #display_up, [data-active="left"] #display_left, [data-active="right"] #display_right, [data-active="down"] #display_down
