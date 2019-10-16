@@ -1238,6 +1238,11 @@
     "@svgr/plugin-svgo" "^4.0.3"
     loader-utils "^1.1.0"
 
+"@tensorflow-models/coco-ssd@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.npm.taobao.org/@tensorflow-models/coco-ssd/download/@tensorflow-models/coco-ssd-2.0.0.tgz#6dbba903a86d5fbd2c65532aa44f821c56516fb4"
+  integrity sha1-bbupA6htX70sZVMqpE+CHFZRb7Q=
+
 "@tensorflow-models/posenet@^2.1.3":
   version "2.1.3"
   resolved "https://registry.npm.taobao.org/@tensorflow-models/posenet/download/@tensorflow-models/posenet-2.1.3.tgz#09633e6e6e41d6c00d2ee7633632fb9322651463"

@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import Core from './components/core/index'
 import Pose from './components/pose/index'
+import Ssd from './components/ssd/index'
 import './index.scss'
 
 class App extends Component {
@@ -8,7 +9,7 @@ class App extends Component {
         super(props);
         this.list = ['分类器训练', '姿势识别', '物品识别']
         this.state = {
-            index: 2
+            index: 3
         }
     }
 
@@ -26,10 +27,10 @@ class App extends Component {
                         </div>
                     </div> :
                     <div className="main-display">
-                        <div className="back" onClick={() => this.setState({index: 0})} />
-                        {this.state.index === 1 && <Core />}
-                        {this.state.index === 2 && <Pose />}
-                        {this.state.index === 3 && <Core />}
+                        <div className="back" onClick={() => this.setState({index: 0})}/>
+                        {this.state.index === 1 && <Core/>}
+                        {this.state.index === 2 && <Pose/>}
+                        {this.state.index === 3 && <Ssd/>}
                     </div>}
 
             </div>
