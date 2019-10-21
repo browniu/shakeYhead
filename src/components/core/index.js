@@ -43,7 +43,7 @@ class ShakeY extends Component {
                     <div className="display-item display-main">
                         <div className="display-inner">
                             <div className="view">
-                                <div className="info" id={'status'}>构建神经网络</div>
+                                <div className="info" id={'status'}>初始化神经网络...</div>
                                 <div className="info" id={'no-webcam'}>检查输入设备</div>
                                 {this.state.delay &&
                                 <div

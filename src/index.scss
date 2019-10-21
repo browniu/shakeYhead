@@ -8,18 +8,19 @@
     .title {
       text-align: center;
       margin-bottom: 15px;
+      white-space: nowrap;
+      color: var(--title);
     }
 
     .menu {
 
-
       li {
         background: #f1f1f1;
-        margin-bottom: 10px;
-        width: 200px;
+        margin-bottom: 15px;
+        width: 250px;
         text-align: center;
-        padding: 10px 20px;
-        color: #666;
+        padding: 15px 20px;
+        color: var(--text);
         border-radius: 3px;
         cursor: pointer;
 

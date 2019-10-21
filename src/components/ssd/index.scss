@@ -6,6 +6,22 @@ $co3: #486491;
 $co3h: #273849;
 $co3l: #1c90f3;
 .ssd {
+  &.disable {
+    opacity: .8;
+    pointer-events: none;
+
+    &:before {
+      content: '正在初始化模型';
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 30px 25px;
+      z-index: 99;
+      background: rgba(0, 0, 0, .7);
+      color: #fff;
+    }
+  }
   .console {
     padding: 8px 5px;
     transition: .3s ease;

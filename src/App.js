@@ -7,9 +7,9 @@ import './index.scss'
 class App extends Component {
     constructor(props) {
         super(props);
-        this.list = ['分类器训练', '姿势识别', '物品识别']
+        this.list = ['分类器训练', '姿势识别', '物品识别'];
         this.state = {
-            index: 3
+            index: null
         }
     }
 
@@ -18,7 +18,7 @@ class App extends Component {
             <div className="App">
                 {!this.state.index ? <div className="main-panel">
                         <div className="title">
-                            西山居 Web-机器学习相关
+                            <h3>西山居-网络平台-机器学习相关</h3>
                         </div>
                         <div className="menu">
                             {this.list.map((e, i) => (

@@ -5,7 +5,14 @@
 
 先计算出示例图中人物的动作节点，然后通过摄像头捕捉你的关键节点，计算出两者之间的差异，得出一个相似度分数（0-100）
 
+### 图像分类器训练
+![demo](./static/xzqxl.gif)
+
+### 人体姿势匹配
 ![demo](./static/shakeYhead.demo.gif)
+
+### 物品识别
+![demo](./static/car.png)
 
 ## Core
 

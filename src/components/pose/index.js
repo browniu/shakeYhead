@@ -21,38 +21,41 @@ class Pose extends Component {
             tolong: false,
             catching: false,
             uploading: false,
+            initState: false
         }
     }
 
     render() {
+        const {initState} = this.state;
         return (
-            <div className={'pose'}>
+            <div className={['pose', initState ? '' : 'disable'].join(' ')}>
                 <div className="template">
-                    <img id={'pose'} src={require('./' + this.const.template[this.state.templateIndex])} alt="pose" />
-                    <canvas id="cvsTemplate" className={this.state.tolong ? 'tolong' : ''} />
+                    <img id={'pose'} src={require('./' + this.const.template[this.state.templateIndex])} alt="pose"/>
+                    <canvas id="cvsTemplate" className={this.state.tolong ? 'tolong' : ''}/>
                     <div className="meter">
                         <div className="content">相似度:{(this.state.meter * 100).toFixed(3)}%</div>
                         <div className="status" style={{
                             transform: 'scaleX(' + this.state.meter + ')',
                             background: this.state.meter > this.const.accuracy ? '#4fc08d' : '#f66',
-                        }} />
+                        }}/>
                         <div className="status-grides">
                             {Array.apply(null, {length: 25}).map((e, i) => (
                                 <i key={i} style={{
                                     left: 'calc(' + 3 * i + '% + ' + i + 'px)'
-                                }} />))}
+                                }}/>))}
                         </div>
                     </div>
                 </div>
                 <div className="stream">
-                    <div className={['stream-static', this.state.uploading ? 'act' : ''].join(' ')} />
+                    <div className={['stream-static', this.state.uploading ? 'act' : ''].join(' ')}/>
                     <div className={['stream-view', this.state.uploading ? '' : 'act'].join(' ')}>
-                        <video height="224" width="224" muted playsInline autoPlay id={'webcam'} />
-                        <canvas id="cvsView" />
+                        <video height="224" width="224" muted playsInline autoPlay id={'webcam'}/>
+                        <canvas id="cvsView"/>
                     </div>
                     <div className="stream-panel">
                         <div className={'console'}>
-                            <span className={['info', (this.state.streamInfoWarn || this.state.streamInfoDown || this.state.streamInfoErr) ? 'act' : '', this.state.streamInfoDown ? 'down' : ''].join(' ')}>
+                            <span
+                                className={['info', (this.state.streamInfoWarn || this.state.streamInfoDown || this.state.streamInfoErr) ? 'act' : '', this.state.streamInfoDown ? 'down' : ''].join(' ')}>
                                 {this.state.streamInfoWarn && '距离屏幕稍远一些，让身体更多部分进入镜头'}
                                 {this.state.streamInfoErr && '未检测到动作数据'}
                                 {this.state.streamInfoDown && '匹配成功'}
@@ -68,7 +71,7 @@ class Pose extends Component {
                             </button>
                             <button onClick={() => this.exchange()}>切换
                             </button>
-                            <button onClick={() => this.upload()}>上传 <input id={'uploadPic'} type="file" /></button>
+                            <button onClick={() => this.upload()}>上传 <input id={'uploadPic'} type="file"/></button>
                         </div>
 
                     </div>
@@ -279,8 +282,9 @@ class Pose extends Component {
         }
     }
 
-    componentDidMount() {
-        this.init()
+    async componentDidMount() {
+        await this.init();
+        this.setState({initState: true})
     }
 }
 

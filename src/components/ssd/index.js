@@ -9,13 +9,15 @@ class Ssd extends Component {
         this.state = {
             loaded: false,
             info: null,
-            catching: false
+            catching: false,
+            initState: false
         }
     }
 
     render() {
+        const {initState} = this.state;
         return (
-            <div className={'ssd'}>
+            <div className={['ssd', initState ? '' : 'disable'].join(' ')}>
                 {this.state.info && <div className="console">{this.state.info}</div>}
                 <div className={['display', this.state.loaded ? 'act' : ''].join(' ')}>
                     <canvas className={this.state.loaded ? 'act' : ''} id={'cvs'}/>
@@ -40,6 +42,7 @@ class Ssd extends Component {
     async componentDidMount() {
         await this.load();
         await this.test();
+        this.setState({initState: true})
     }
 
     async test() {
