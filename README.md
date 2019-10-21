@@ -1,7 +1,7 @@
 # shakeYhead
 > 基于深度学习的姿势/动作识别匹配系统
 
-## [demo](https://browniu.gitee.io/more/tf/)
+## demo
 
 先计算出示例图中人物的动作节点，然后通过摄像头捕捉你的关键节点，计算出两者之间的差异，得出一个相似度分数（0-100）
 
@@ -16,9 +16,9 @@
 
 ## Core
 
-![向量相似性](./static/xlxsx.png)
-
 向量相似性的JS实现
+
+![向量相似性](./static/xlxsx.png)
 
 ```JavaScript
 async function compute(x, y) {
