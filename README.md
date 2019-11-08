@@ -1,7 +1,7 @@
 # shakeYhead
 > 基于深度学习的姿势/动作识别匹配系统
 
-## demo
+## [demo](https://browniu.com/shakeYhead/)
 
 ### 图像分类器训练
 基于迁移模型，通过极少量的二次训练获取一个图像分类器
