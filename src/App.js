@@ -18,7 +18,7 @@ class App extends Component {
             <div className="App">
                 {!this.state.index ? <div className="main-panel">
                         <div className="title">
-                            <h3>西山居-网络平台-机器学习相关</h3>
+                            <h3>Browniu-机器学习相关</h3>
                         </div>
                         <div className="menu">
                             {this.list.map((e, i) => (

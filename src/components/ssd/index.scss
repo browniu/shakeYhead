@@ -22,6 +22,7 @@ $co3l: #1c90f3;
       color: #fff;
     }
   }
+
   .console {
     padding: 8px 5px;
     transition: .3s ease;
@@ -52,9 +53,11 @@ $co3l: #1c90f3;
       height: auto;
       background: #f1f1f1;
       display: none;
-      &.act{
+
+      &.act {
         display: inline-block;
       }
+
       //transform: scaleX(-1);
     }
 
@@ -62,6 +65,7 @@ $co3l: #1c90f3;
       transform: scaleX(-1);
       //position: absolute;
       visibility: hidden;
+      position: absolute;
     }
 
     &.act {
@@ -94,11 +98,21 @@ $co3l: #1c90f3;
         &:hover {
           background: $co2h;
         }
-        & input{
+
+        & input {
           display: none;
         }
 
       }
+    }
+
+    .state {
+      width: 500px;
+      background: #f1f1f1;
+      padding: 15px 10px;
+      margin: 10px 0;
+      font-size: 12px;
+      box-sizing: border-box;
     }
   }
 }

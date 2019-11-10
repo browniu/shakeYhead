@@ -2,15 +2,19 @@ import React, {Component} from 'react';
 import * as tf from '@tensorflow/tfjs';
 import * as cocoSsd from "@tensorflow-models/coco-ssd";
 import './index.scss'
+import axios from 'axios'
+import $ from 'jquery';
+import MD5 from './md5'
 
-class Ssd extends Component {
+export default class Ssd extends Component {
     constructor(props) {
         super(props);
         this.state = {
             loaded: false,
             info: null,
             catching: false,
-            initState: false
+            initState: false,
+            result: []
         }
     }
 
@@ -18,7 +22,7 @@ class Ssd extends Component {
         const {initState} = this.state;
         return (
             <div className={['ssd', initState ? '' : 'disable'].join(' ')}>
-                {this.state.info && <div className="console">{this.state.info}</div>}
+                {/*{this.state.info && <div className="console">{this.state.info}</div>}*/}
                 <div className={['display', this.state.loaded ? 'act' : ''].join(' ')}>
                     <canvas className={this.state.loaded ? 'act' : ''} id={'cvs'}/>
                     <canvas className={this.state.catching ? 'act' : ''} id={'cvsStream'}/>
@@ -28,6 +32,11 @@ class Ssd extends Component {
                 </div>
                 <div className="panel">
                     <div className="menu">
+                        <div className="state">
+                            {this.state.result.map(item => <li key={item.class}>
+                                <b>{item.class}</b> 概率：<i>{item.score.toFixed(4)}%</i>
+                            </li>)}
+                        </div>
                         <div className={["button", this.state.catching ? 'act' : ''].join(' ')}
                              onClick={() => this.camSwitch()}>{this.state.catching ? '暂停' : '开始'}</div>
                         <div className="button" onClick={() => this.upload()}><input id={'uploadPic'} type="file"/>上传
@@ -39,7 +48,34 @@ class Ssd extends Component {
         );
     }
 
+    translate(string = 'apple') {
+        const appid = '20191110000355261';
+        const key = 'kxd4SUPAKMVXlNp7lwiX';
+        const salt = (new Date).getTime();
+        const query = string;
+        const from = 'en';
+        const to = 'zh';
+        const str1 = appid + query + salt + key;
+        const sign = MD5(str1);
+        return $.ajax({
+            url: 'http://api.fanyi.baidu.com/api/trans/vip/translate',
+            type: 'get',
+            dataType: 'jsonp',
+            data: {
+                q: query,
+                appid: appid,
+                salt: salt,
+                from: from,
+                to: to,
+                sign: sign
+            }
+        }).then(res => {
+            return res.trans_result[0].dst
+        });
+    }
+
     async componentDidMount() {
+        this.translate()
         await this.load();
         await this.test();
         this.setState({initState: true})
@@ -49,8 +85,14 @@ class Ssd extends Component {
         const img = document.getElementById('demo');
         const cvs = document.getElementById('cvs');
         const result = await this.ssd.detect(img);
+        console.log(result);
         // eslint-disable-next-line no-throw-literal
         if (result.length < 1) throw ('未检测到任何对象');
+        else {
+            this.translate(result[0].class).then(res => {
+                this.setState({result: [{...result[0], class: res}]});
+            })
+        }
         Ssd.draw(img, result[0], cvs, true);
 
     }
@@ -60,16 +102,10 @@ class Ssd extends Component {
         if (result.length < 1) {
             this.setState({info: '未检测到任何可识别对象'});
         } else {
-            switch (type) {
-                case 'label':
-                    if (label) return result.filter(e => e.class === label);
-                    break
-                case 'multi':
-                    return result;
-                    break
-                default:
-                    return result[0]
-            }
+            this.translate(result[0].class).then(res => {
+                this.setState({result: [{...result[0], class: res}]});
+            });
+            return result[0]
         }
     }
 
@@ -127,14 +163,6 @@ class Ssd extends Component {
 
     async catch(target, cvs) {
         let result = await this.predict(target);
-        console.log(result)
-        if (!result) {
-        } else if (result.length === 0) {
-            result = undefined;
-        } else {
-            result = result[0];
-            this.setState({info: '安全'});
-        }
         Ssd.draw(target, result, cvs, true);
         if (this.state.catching) requestAnimationFrame(() => this.catch(target, cvs));
     }
@@ -182,4 +210,4 @@ class Ssd extends Component {
 
 }
 
-export default Ssd;
+
